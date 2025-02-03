@@ -1,5 +1,6 @@
 import random
-from item import HealthPotion
+import util
+from item import HealthPotion, InstantPoisonPotion
 
 BASE_CHANCE_HIT = 50
 
@@ -77,6 +78,8 @@ LCK : {self.luck}\n"""
     def use(self, item):
         if isinstance(item, HealthPotion):
             HealthPotion.heal(item, self)
+        elif isinstance(item, InstantPoisonPotion):
+            InstantPoisonPotion.poison(item, self, enemy)
 
     def attack(self, enemy):
         input(f"\n{self.name} attacks {enemy.name}!")
@@ -88,13 +91,13 @@ LCK : {self.luck}\n"""
                 damage = self.strength - enemy.defense
             else:
                 damage = self.strength - enemy.resistance
-            damage = not_less_zero(damage)
+            damage = util.not_less_zero(damage)
             if randomVariable < self.luck:                  # Critical Hit
                 damage = damage * 2
                 print("Critical Hit!")
             print(f"{self.name} hits {enemy.name} for {damage} ({hitChance})!\n")
             enemy.hp -= damage
-            enemy.hp = not_less_zero(enemy.hp)
+            enemy.hp = util.not_less_zero(enemy.hp)
             print(enemy)
         else:
             print("Miss!\n")
@@ -114,6 +117,3 @@ LCK : {self.luck}\n"""
 #        self.units = units
 #        self.gold = 0
 #
-
-def not_less_zero(variable):
-    return max(0, variable)
