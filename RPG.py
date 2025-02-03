@@ -1,10 +1,10 @@
 import random
-import os
 import sys
-import time
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
 import threading
+import music
+from item import HealthPotion, smallHealthPotion, largeHealthPotion
+
+BASE_CHANCE_HIT = 50
 
 class Unit:
     def __init__(self, name, player, physical, max_hp, strength, defense, resistance, dexterity, speed, luck, hp = None):
@@ -19,6 +19,7 @@ class Unit:
         self.dexterity = dexterity
         self.speed = speed
         self.luck = luck
+        self.inventory = []
 
     @property
     def hp(self):
@@ -38,11 +39,30 @@ RES : {self.resistance}
 DEX : {self.dexterity}
 SPD : {self.speed} 
 LCK : {self.luck}\n"""
+
+    def add_item(self, item):
+        self.inventory.append(item)
+
+    def read_inventory(self):
+        if len(self.inventory) == 0:
+            print("Inventory is empty!\n")
+        for item in self.inventory:
+            print(item)
+
+    def use_inventory(self):
+        for i in range(len(self.inventory)):
+            print(f"{i + 1}. {self.inventory[i].name}")
+        selection = input("What do you want to use?\n")
+        self.use(self.inventory[(int(selection) - 1)])
+        self.inventory.pop(int(selection) - 1)
+
+    def use(self, item):
+        if isinstance(item, HealthPotion):
+            self.heal(item.heal_amount)
     
     def attack(self, enemy):
-        input("Press Enter to continue \n")                 ##Might need to remove this later
-        print(f"{self.name} attacks {enemy.name}!")
-        hitChance = 70 + self.dexterity
+        input(f"\n{self.name} attacks {enemy.name}!")
+        hitChance = BASE_CHANCE_HIT + self.dexterity
         randomVariable = random.randint(0, 100)
         if randomVariable < hitChance:
             randomVariable = random.randint(0, 100)
@@ -51,17 +71,29 @@ LCK : {self.luck}\n"""
             else:
                 damage = self.strength - enemy.resistance
             damage = not_less_zero(damage)
-            if randomVariable < self.luck:                  ## Critical Hit
+            if randomVariable < self.luck:                  # Critical Hit
                 damage = damage * 2
-            print(f"{self.name} hits {enemy.name} for {damage} ({hitChance})!")
+                print("Critical Hit!")
+            print(f"{self.name} hits {enemy.name} for {damage} ({hitChance})!\n")
             enemy.hp -= damage
             enemy.hp = not_less_zero(enemy.hp)
             print(enemy)
         else:
-            print("Miss!")
+            print("Miss!\n")
 
-class Party:
-    def __init__
+    def heal(self, heal_amount):
+        input("Healing!\n")
+        if self.hp > (self.max_hp - heal_amount):
+            self.hp = self.max_hp
+        else:
+            self.hp += heal_amount
+        print(f"{self.name} heals for {heal_amount}, back to {self.hp}!")
+
+#class Party:
+#    def __init__(self, units):
+#        self.units = units
+#        self.gold = 0
+#
 
 class CombatManager:
     def __init__(self, player_unit, enemy_unit):
@@ -84,7 +116,15 @@ class CombatManager:
                         return 1
 
     def player_turn(self):
-        self.player_unit.attack(self.enemy_unit)
+        while True:
+            selection = input("What do you want to do?\n1. Attack\n2. Check Inventory\n3. Use Item\n")
+            if selection == "1":
+                self.player_unit.attack(self.enemy_unit)
+                break
+            elif selection == "2":
+                self.player_unit.read_inventory()
+            elif selection == "3":
+                self.player_unit.use_inventory()
 
     def enemy_turn(self):
         self.enemy_unit.attack(self.player_unit)
@@ -96,46 +136,30 @@ def pick_random_from(l):
     randomVariable = random.randint(0, len(l))
     return l[randomVariable]
 
-def start_music_thread(stop_event, sound_file):
-    music_thread = threading.Thread(target=looping_music, args=(stop_event, sound_file), daemon=True)
-    music_thread.start()
-
-def stop_current_music_thread(stop_event):
-    stop_event.set()
-    time.sleep(0.1)
-
-def looping_music(stop_event, sound_file):
-    pygame.mixer.music.load(sound_file)
-    pygame.mixer.music.play(-1)  # Play music in a loop
-    while not stop_event.is_set():
-        time.sleep(0.1)
-    pygame.mixer.music.stop()
-
-def stop_and_play_music(sound_file):
-    pygame.mixer.music.load(sound_file)
-    pygame.mixer.music.play()
-
+def initialise_player_and_enemy(name):
+    playerUnit = Unit(name = name, player = True, physical = True, max_hp = 10, strength = 6, defense = 2, resistance = 8, dexterity = 30, speed = 3, luck = 30)
+    enemyUnit = Unit("Enemy", False, True, 10, 6, 3, 0, 10, 5, 5)
+    return playerUnit, enemyUnit
 
 def main():
-    pygame.mixer.init()
-    stop_event = threading.Event()
-    start_music_thread(stop_event, "music/cats.wav")
+    stop_event = music.initialise_music()
+    music.start_music_thread(stop_event, "music/cats.wav")
     name = input("What's your name? \n")
-    stop_current_music_thread(stop_event)
+    music.stop_current_music_thread(stop_event)
     stop_event = threading.Event()
-    start_music_thread(stop_event, "music/riff.wav")
-    playerUnit = Unit(name = name, player = True, physical = False, max_hp = 5, strength = 6, defense = 2, resistance = 8, dexterity = 30, speed = 3, luck = 100)
-    enemyUnit = Unit("Enemy", False, False, 5, 6, 3, 0, 10, 5, 5)
-    print(playerUnit)
-    print(enemyUnit)
+    music.start_music_thread(stop_event, "music/riff.wav")
+    playerUnit, enemyUnit = initialise_player_and_enemy(name)
+    playerUnit.add_item(smallHealthPotion)
+
     combat = CombatManager(playerUnit, enemyUnit)
     outcome = combat.start_battle()
-    stop_current_music_thread(stop_event)
+
+    music.stop_current_music_thread(stop_event)
     if outcome == 0:
-        stop_and_play_music('music/victory.wav')
+        music.stop_and_play_music('music/victory.wav')
         input("Congatulations\n")
     else:
-        stop_and_play_music('music/game over.wav')
+        music.stop_and_play_music('music/game over.wav')
         input("Sorry! Try again!\n")
     
 
