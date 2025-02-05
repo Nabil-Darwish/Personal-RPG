@@ -41,7 +41,8 @@ class InstantPoisonPotion(Potion):
         print(f"{unit.name} used {self.name} on {enemy_unit.name}!")
         enemy_unit.hp -= self.damage_amount
         enemy_unit.hp = util.not_less_zero(enemy_unit.hp)
-        print(f"{unit.name} damages {enemy_unit.name} for {self.damage_amount}, back to {enemy_unit.hp}!")
+        print(f"{unit.name} damages {enemy_unit.name} for {self.damage_amount}, back to {enemy_unit.hp}!\n")
+        print(enemy_unit)
 
 
 #     def __eq__(self, other):

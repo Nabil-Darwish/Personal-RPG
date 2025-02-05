@@ -18,6 +18,7 @@ class Unit:
         self.speed = speed
         self.luck = luck
         self.inventory = {}
+        self.status_effects = {}
 
     @property
     def hp(self):
@@ -51,7 +52,7 @@ LCK : {self.luck}\n"""
         for key in self.inventory:
             print(self.inventory[key])
 
-    def use_inventory(self):
+    def get_item(self):
         for index, (key, value) in enumerate(self.inventory.items()):
             print(f"{index + 1}. {self.inventory[key]}")
 
@@ -64,10 +65,9 @@ LCK : {self.luck}\n"""
                 print("Please enter a valid number!\n")
 
         item_name = list(self.inventory.keys())[choice]
-        item = self.inventory[item_name]
 
-        self.use(item)
-        self.remove_item(item_name)
+        return item_name
+
 
     def remove_item(self, item_name):
         if self.inventory[item_name].stack_size > 1:
@@ -113,7 +113,7 @@ LCK : {self.luck}\n"""
 
 
 #class Party:
-#    def __init__(self, units):
+#    def __init__(self, units, gold):
 #        self.units = units
 #        self.gold = 0
 #

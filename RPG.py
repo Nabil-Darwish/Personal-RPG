@@ -2,8 +2,7 @@ import sys
 import threading
 import music
 import unit
-import item
-from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion
+from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion
 
 class CombatManager:
     def __init__(self, player_unit, enemy_unit):
@@ -34,13 +33,21 @@ class CombatManager:
             elif selection == "2":
                 self.player_unit.read_inventory()
             elif selection == "3":
-                self.player_unit.use_inventory()
+                item_name = self.player_unit.get_item()
+                item = self.player_unit.inventory[item_name]
+                self.item_use(self.player_unit, self.enemy_unit, item)
                 break
             else:
                 print("Invalid Selection!")
 
     def enemy_turn(self):
         self.enemy_unit.attack(self.player_unit)
+
+    def item_use(self, player_unit, enemy_unit, item):
+        if isinstance(item, HealthPotion):
+            HealthPotion.heal(item, player_unit)
+        elif isinstance(item, InstantPoisonPotion):
+            InstantPoisonPotion.poison(item, player_unit, enemy_unit)
 
 def pick_random_from(l):
     randomVariable = random.randint(0, len(l))
