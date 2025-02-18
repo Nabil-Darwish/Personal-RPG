@@ -37,7 +37,9 @@ DEF : {self.defense}
 RES : {self.resistance}
 DEX : {self.dexterity}
 SPD : {self.speed} 
-LCK : {self.luck}\n"""
+LCK : {self.luck}
+
+Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
 
     # If there are no items of the type, then add entry to dictionary. Otherwise, add stack size
     def add_item(self, item):
@@ -68,12 +70,24 @@ LCK : {self.luck}\n"""
 
         return item_name
 
-
     def remove_item(self, item_name):
         if self.inventory[item_name].stack_size > 1:
             self.inventory[item_name].stack_size -= 1
         else:
             self.inventory.pop(item_name)
+
+    def add_status_effect(self, status_effect):
+        self.status_effects[status_effect.name] = status_effect
+
+    def decrease_status_effect_durations(self):
+        if len(self.status_effects) == 0:
+            return
+        for status_effect_name in list(self.status_effects.keys()):
+            status_effect = self.status_effects[status_effect_name]
+            if status_effect.duration > 1:
+                status_effect.duration -= 1
+            else:
+                self.status_effects.pop(status_effect_name)
 
     def use(self, item):
         if isinstance(item, HealthPotion):
@@ -117,3 +131,54 @@ LCK : {self.luck}\n"""
 #        self.units = units
 #        self.gold = 0
 #
+
+class StatusEffect:
+    def __init__(self, name, duration, description):
+        self.name = name
+        self.duration = duration
+        self.description = description
+        self.effects = {
+            "strength": 0,
+            "percent_strength": 0,
+            "defense": 0,
+            "percent_defense": 0,
+            "resistance": 0,
+            "percent_resistance": 0,
+            "dexterity": 0,
+            "percent_dexterity": 0,
+            "speed": 0,
+            "percent_speed": 0,
+            "luck": 0,
+            "percent_luck": 0
+        }
+
+    def __str__(self):
+        return f"{self.name}: {self.description} ({self.duration} Turn/s)\n" + self.read_effects()
+
+    def __repr__(self):
+        return self.__str__()
+
+    def read_effects(self):
+        effects = ""
+        for key in self.effects:
+            if self.effects[key] != 0:
+                if self.effects[key] > 0:
+                    effects += f"{key.capitalize()}: +{self.effects[key]}"
+                elif self.effects[key] < 0:
+                    effects += f"{key.capitalize()}: {self.effects[key]}"
+                if "percent" in key:
+                    effects += "%"
+                effects += "\n"
+        return effects
+
+    def apply_effect(self, stat, value):
+        if stat in self.effects:
+            self.effects[stat] = (value)
+        else:
+            print("Invalid stat!")
+
+testingStatusEffect = StatusEffect("Testing", 3, "Testing Effects")
+testingStatusEffect.apply_effect("strength", 10)
+
+testingStatusEffect2 = StatusEffect("More Testing", 1, "Bees")
+testingStatusEffect2.apply_effect("percent_strength", -10)
