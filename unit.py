@@ -1,5 +1,6 @@
 import random
 import util
+import math
 from item import HealthPotion, InstantPoisonPotion
 
 BASE_CHANCE_HIT = 50
@@ -11,14 +12,25 @@ class Unit:
         self.physical = physical
         self.max_hp = max_hp
         self._hp = max_hp if hp is None else min(max_hp, hp)
-        self.strength = strength
-        self.defense = defense
-        self.resistance = resistance
-        self.dexterity = dexterity
-        self.speed = speed
-        self.luck = luck
+        self.stats = {
+            "strength": strength,
+            "defense": defense,
+            "resistance": resistance,
+            "dexterity": dexterity,
+            "speed": speed,
+            "luck": luck
+        }
         self.inventory = {}
         self.status_effects = {}
+        # First value is the flat increase, second value is the percentage increase
+        self.temporary_stats = {
+            "strength": {"flat_increase": 0, "percent_increase": 0},
+            "defense": {"flat_increase": 0, "percent_increase": 0},
+            "resistance": {"flat_increase": 0, "percent_increase": 0},
+            "dexterity": {"flat_increase": 0, "percent_increase": 0},
+            "speed": {"flat_increase": 0, "percent_increase": 0},
+            "luck": {"flat_increase": 0, "percent_increase": 0}
+        }
 
     @property
     def hp(self):
@@ -32,12 +44,12 @@ class Unit:
         return f"""Name: {self.name}
 PHYS: {self.physical}
 HP  : {self.hp}/{self.max_hp}   
-STR : {self.strength} 
-DEF : {self.defense}
-RES : {self.resistance}
-DEX : {self.dexterity}
-SPD : {self.speed} 
-LCK : {self.luck}
+STR : {self.stats["strength"]} ({self.get_temp_stat("strength")})
+DEF : {self.stats["defense"]} ({self.get_temp_stat("defense")})
+RES : {self.stats["resistance"]} ({self.get_temp_stat("resistance")})
+DEX : {self.stats["dexterity"]} ({self.get_temp_stat("dexterity")})
+SPD : {self.stats["speed"]} ({self.get_temp_stat("speed")})
+LCK : {self.stats["luck"]} ({self.get_temp_stat("luck")})
 
 Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
 
@@ -77,7 +89,34 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
             self.inventory.pop(item_name)
 
     def add_status_effect(self, status_effect):
+        # Get the status effect from the list of status effects applied to the unit by name
         self.status_effects[status_effect.name] = status_effect
+        for stat, value in {k:v for k, v in status_effect.effects.items() if v != 0}.items():
+            if "percent" in stat:
+                stat_affected = stat.split('_')[1]
+                self.temporary_stats[stat_affected]["percent_increase"] += value
+            else:
+                self.temporary_stats[stat]["flat_increase"] += value
+
+    # This only occurs if the status effect is popped out of the list
+    def delete_temp_stats(self, status_effect):
+        #  From the list of stats that are affected by the status effect
+        for stat, value in {k:v for k, v in status_effect.effects.items() if v != 0}.items():
+            if "percent" in stat:
+                stat_affected = stat.split('_')[1]
+                self.temporary_stats[stat_affected]["percent_increase"] = self.temporary_stats[stat_affected]["percent_increase"] - value
+            else:
+                self.temporary_stats[stat]["flat_increase"] = self.temporary_stats[stat]["flat_increase"] - value
+
+    def read_temp_stat(self, temp_stat):
+        if temp_stat in self.temporary_stats:
+            return '(' + str(self.temporary_stats[temp_stat]) + ')'
+        else:
+            return ''
+
+    def get_temp_stat(self, temp_stat):
+        # Add flat increase and multiply percentage increase with the current stat
+        return math.floor(self.stats[temp_stat] * (self.temporary_stats[temp_stat]["percent_increase"] + 100) / 100 + self.temporary_stats[temp_stat]["flat_increase"])
 
     def decrease_status_effect_durations(self):
         if len(self.status_effects) == 0:
@@ -88,28 +127,23 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 status_effect.duration -= 1
             else:
                 self.status_effects.pop(status_effect_name)
-
-    def use(self, item):
-        if isinstance(item, HealthPotion):
-            HealthPotion.heal(item, self)
-        elif isinstance(item, InstantPoisonPotion):
-            InstantPoisonPotion.poison(item, self, enemy)
+                self.delete_temp_stats(status_effect)
 
     def attack(self, enemy):
         input(f"\n{self.name} attacks {enemy.name}!")
-        hitChance = BASE_CHANCE_HIT + self.dexterity
-        randomVariable = random.randint(0, 100)
-        if randomVariable < hitChance:
-            randomVariable = random.randint(0, 100)
+        hit_chance = BASE_CHANCE_HIT + self.get_temp_stat("dexterity")
+        random_variable = random.randint(0, 100)
+        if random_variable < hit_chance:
+            random_variable = random.randint(0, 100)
             if self.physical:
-                damage = self.strength - enemy.defense
+                damage = self.get_temp_stat("strength") - enemy.get_temp_stat("defense")
             else:
-                damage = self.strength - enemy.resistance
+                damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")
             damage = util.not_less_zero(damage)
-            if randomVariable < self.luck:                  # Critical Hit
+            if random_variable < self.get_temp_stat("luck"):                  # Critical Hit
                 damage = damage * 2
                 print("Critical Hit!")
-            print(f"{self.name} hits {enemy.name} for {damage} ({hitChance})!\n")
+            print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})!\n")
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
             print(enemy)
@@ -173,7 +207,7 @@ class StatusEffect:
 
     def apply_effect(self, stat, value):
         if stat in self.effects:
-            self.effects[stat] = (value)
+            self.effects[stat] = value
         else:
             print("Invalid stat!")
 

@@ -1,3 +1,4 @@
+import random
 import sys
 import threading
 import music
@@ -5,7 +6,7 @@ import unit
 from enum import Enum
 from colorama import init, Fore
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion
-from unit import testingStatusEffect
+from unit import testingStatusEffect, testingStatusEffect2
 
 class FightOutcome(Enum):
     PLAYER_VICTORY = 0
@@ -19,14 +20,14 @@ class CombatManager:
 
     def start_battle(self):
         while True:
-            turnOrder = self.get_turn_order()
-            for unit in turnOrder:
-                self.handle_unit_turn(unit)
+            turn_order = self.get_turn_order()
+            for unit_turn in turn_order:
+                self.handle_unit_turn(unit_turn)
                 if self.outcome is not None:
                     return self.outcome
 
     def get_turn_order(self):
-        return sorted([self.player_unit, self.enemy_unit], key=lambda unit: unit.speed, reverse=True)
+        return sorted([self.player_unit, self.enemy_unit], key=lambda unit: unit.get_temp_stat("speed"), reverse=True)
 
     def handle_unit_turn(self, unit):
         if unit.player:
@@ -50,7 +51,7 @@ class CombatManager:
     def player_turn(self):
         player_turn_text = "What do you want to do?\n1. Attack\n2. Check Inventory\n3. Use Item\n"
         has_used_item = False
-        while True and self.enemy_unit.hp > 0:
+        while has_used_item == False and self.enemy_unit.hp > 0:
             selection = input(player_turn_text)
             if selection == "1":
                 self.player_unit.attack(self.enemy_unit)
@@ -77,13 +78,13 @@ class CombatManager:
             InstantPoisonPotion.poison(item, player_unit, enemy_unit)
 
 def pick_random_from(l):
-    randomVariable = random.randint(0, len(l))
-    return l[randomVariable]
+    random_variable = random.randint(0, len(l))
+    return l[random_variable]
 
 def initialise_player_and_enemy(name):
-    playerUnit = unit.Unit(name = name, player = True, physical = True, max_hp = 10, strength = 6, defense = 2, resistance = 8, dexterity = 30, speed = 3, luck = 30)
-    enemyUnit = unit.Unit("Enemy", False, True, 10, 6, 3, 0, 10, 5, 5)
-    return playerUnit, enemyUnit
+    player_unit = unit.Unit(name = name, player = True, physical = True, max_hp = 10, strength = 6, defense = 2, resistance = 8, dexterity = 30, speed = 3, luck = 30)
+    enemy_unit = unit.Unit("Enemy", False, True, 10, 6, 3, 0, 10, 5, 5)
+    return player_unit, enemy_unit
 
 def main():
     init()
@@ -93,13 +94,13 @@ def main():
     music.stop_current_music_thread(stop_event)
     stop_event = threading.Event()
     music.start_music_thread(stop_event, "music/riff.wav")
-    playerUnit, enemyUnit = initialise_player_and_enemy(name)
-    playerUnit.add_item(smallHealthPotion)
-    playerUnit.add_item(largeHealthPotion)
-    playerUnit.add_item(smallInstantHarmingPotion)
-    playerUnit.add_status_effect(testingStatusEffect)
+    player_unit, enemy_unit = initialise_player_and_enemy(name)
+    player_unit.add_item(smallHealthPotion)
+    player_unit.add_item(largeHealthPotion)
+    player_unit.add_item(smallInstantHarmingPotion)
+    player_unit.add_status_effect(testingStatusEffect2)
 
-    combat = CombatManager(playerUnit, enemyUnit)
+    combat = CombatManager(player_unit, enemy_unit)
     combat.start_battle()
 
     music.stop_current_music_thread(stop_event)
