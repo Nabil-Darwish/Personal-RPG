@@ -216,3 +216,6 @@ testingStatusEffect.apply_effect("strength", 10)
 
 testingStatusEffect2 = StatusEffect("More Testing", 1, "Bees")
 testingStatusEffect2.apply_effect("percent_strength", -10)
+
+hardenEffect = StatusEffect("Harden", 3, "Minor defense increase")
+hardenEffect.apply_effect("defense", 10)
