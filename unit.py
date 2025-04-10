@@ -133,15 +133,16 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
     def attack(self, enemy):
         input(f"\n{self.name} attacks {enemy.name}!")
         hit_chance = BASE_CHANCE_HIT + self.get_temp_stat("dexterity")
+        print(f"Hit chance: {hit_chance}")
         random_variable = random.randint(0, 100)
-        if random_variable < hit_chance:
+        if random_variable <= hit_chance:
             random_variable = random.randint(0, 100)
             if self.physical:
                 damage = self.get_temp_stat("strength") - enemy.get_temp_stat("defense")
             else:
                 damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")
             damage = util.not_less_zero(damage)
-            if random_variable < self.get_temp_stat("luck"):                  # Critical Hit
+            if random_variable <= self.get_temp_stat("luck"):                  # Critical Hit
                 damage = damage * 2
                 print("Critical Hit!")
             print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})!\n")
@@ -219,3 +220,15 @@ testingStatusEffect2.apply_effect("percent_strength", -10)
 
 hardenEffect = StatusEffect("Harden", 3, "Minor defense increase")
 hardenEffect.apply_effect("defense", 10)
+
+resistEffect = StatusEffect("Resist", 3, "Minor resistance increase")
+resistEffect.apply_effect("resistance", 10)
+
+accuracyEffect = StatusEffect("Accuracy", 3, "Minor dexterity increase")
+accuracyEffect.apply_effect("dexterity", 20)
+
+speedEffect = StatusEffect("Speed", 3, "Minor speed increase")
+speedEffect.apply_effect("speed", 10)
+
+luckyEffect = StatusEffect("Lucky", 3, "Minor luck increase")
+luckyEffect.apply_effect("luck", 70)

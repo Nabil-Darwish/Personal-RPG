@@ -6,7 +6,7 @@ import unit
 from enum import Enum
 from colorama import init, Fore
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion
-from unit import testingStatusEffect, testingStatusEffect2, hardenEffect
+from unit import testingStatusEffect, testingStatusEffect2, hardenEffect, resistEffect, accuracyEffect, speedEffect, luckyEffect
 
 soundtrack_mute = False
 
@@ -92,8 +92,8 @@ class CombatManager:
 
 # Initialises the player and the enemy
 def initialise_player_and_enemy(name):
-    player_unit = unit.Unit(name = name, player = True, physical = True, max_hp = 10, strength = 6, defense = 2, resistance = 8, dexterity = 30, speed = 3, luck = 30)
-    enemy_unit = unit.Unit("Enemy", False, True, 10, 6, 3, 0, 10, 5, 5)
+    player_unit = unit.Unit(name = name, player = True, physical = True, max_hp = 10, strength = 6, defense = 2, resistance = 0, dexterity = 30, speed = 3, luck = 30)
+    enemy_unit = unit.Unit("Enemy", False, False, 10, 4, 3, 0, 10, 5, 5)
     return player_unit, enemy_unit
 
 # Main gameplay loop
@@ -110,8 +110,7 @@ def main():
     player_unit.add_item(smallHealthPotion)
     player_unit.add_item(largeHealthPotion)
     player_unit.add_item(smallInstantHarmingPotion)
-    player_unit.add_status_effect(testingStatusEffect)
-    player_unit.add_status_effect(hardenEffect)
+    player_unit.add_status_effect(luckyEffect)
 
     combat = CombatManager(player_unit, enemy_unit)
     combat.start_battle()
