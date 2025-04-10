@@ -1,5 +1,6 @@
 import util
 
+# This defines the item superclass
 class Item:
     def __init__(self, name, description, stack_size=1):
         self.name = name
@@ -8,10 +9,12 @@ class Item:
 
 #     def __repr__(self):
 
+# Defines the Potion superclass
 class Potion(Item):
     def __init__(self, name, description, stack_size=1):
         super().__init__(name, description, stack_size)
 
+# Defines the HealthPotion subclass
 class HealthPotion(Potion):
     def __init__(self, name, description, stack_size, heal_amount):
         super().__init__(name, description, stack_size)
@@ -28,7 +31,7 @@ class HealthPotion(Potion):
             unit.hp += self.heal_amount
         print(f"{unit.name} heals for {self.heal_amount}, back to {unit.hp}!")
 
-
+# Defines poison potions that work instantly
 class InstantPoisonPotion(Potion):
     def __init__(self, name, description, stack_size, damage_amount):
         super().__init__(name, description, stack_size)

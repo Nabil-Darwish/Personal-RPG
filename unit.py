@@ -5,6 +5,7 @@ from item import HealthPotion, InstantPoisonPotion
 
 BASE_CHANCE_HIT = 50
 
+# Unit class. A unit is a character that is the main entity in a combat scenasrio
 class Unit:
     def __init__(self, name, player, physical, max_hp, strength, defense, resistance, dexterity, speed, luck, hp = None):
         self.name = name
@@ -146,7 +147,6 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
             print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})!\n")
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
-            print(enemy)
         else:
             print("Miss!\n")
 
