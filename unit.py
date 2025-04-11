@@ -33,6 +33,15 @@ class Unit:
             "luck": {"flat_increase": 0, "percent_increase": 0}
         }
 
+    def __repr__(self):
+        return (
+            f"Unit(name={self.name}, player={self.player}, physical={self.physical}, max_hp={self.max_hp}, hp={self._hp})\n"
+            f"  Stats: {self.stats}\n"
+            f"  Inventory: {self.inventory}\n"
+            f"  Status Effects: {self.status_effects}\n"
+            f"  Temporary Stats: {self.temporary_stats}"
+        )
+
     @property
     def hp(self):
         return self._hp
@@ -161,11 +170,24 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
 
 
 
-#class Party:
-#    def __init__(self, units, gold):
-#        self.units = units
-#        self.gold = 0
-#
+class Party:
+   def __init__(self, units, gold, rations):
+       self.units = units
+       self.gold = gold
+       self.rations = rations
+       self.inventory = {}
+
+   def __str__(self):
+       unit_text = ""
+       for unit in self.units:
+           unit_text += str(unit) + "\n"
+       return unit_text + "Gold: " + str(self.gold) + "\nRations: " + str(self.rations)
+
+   def __repr__(self):
+        units_repr = [repr(unit) for unit in self.units]
+        return f"Party(units={units_repr}, gold={self.gold}, rations={self.rations}, inventory={self.inventory})"
+
+
 
 class StatusEffect:
     def __init__(self, name, duration, description):
@@ -191,7 +213,7 @@ class StatusEffect:
         return f"{self.name}: {self.description} ({self.duration} Turn/s)\n" + self.read_effects()
 
     def __repr__(self):
-        return self.__str__()
+        return f"StatusEffect(name={self.name}, duration={self.duration}, description={self.description}, effects={self.effects})"
 
     def read_effects(self):
         effects = ""

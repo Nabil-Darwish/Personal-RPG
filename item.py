@@ -38,7 +38,7 @@ class InstantPoisonPotion(Potion):
         self.damage_amount = damage_amount
 
     def __repr__(self):
-        return f"{self.name}: {self.description}, ({self.stack_size})\n"
+        return f"InstantPoisonPotion({self.name}, {self.description}, {self.stack_size}, {self.damage_amount})\n"
 
     def poison(self, unit, enemy_unit):
         print(f"{unit.name} used {self.name} on {enemy_unit.name}!")
