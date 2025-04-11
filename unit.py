@@ -1,9 +1,11 @@
 import random
 import util
 import math
-from item import HealthPotion, InstantPoisonPotion
 
 BASE_CHANCE_HIT = 50
+
+class InsufficientGoldError(Exception):
+    pass
 
 # Unit class. A unit is a character that is the main entity in a combat scenasrio
 class Unit:
@@ -98,10 +100,10 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         else:
             self.inventory.pop(item_name)
 
-    def add_status_effect(self, status_effect):
+    def add_status_effect(self, added_status_effect):
         # Get the status effect from the list of status effects applied to the unit by name
-        self.status_effects[status_effect.name] = status_effect
-        for stat, value in {k:v for k, v in status_effect.effects.items() if v != 0}.items():
+        self.status_effects[added_status_effect.name] = added_status_effect
+        for stat, value in {k:v for k, v in added_status_effect.effects.items() if v != 0}.items():
             if "percent" in stat:
                 stat_affected = stat.split('_')[1]
                 self.temporary_stats[stat_affected]["percent_increase"] += value
@@ -109,9 +111,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 self.temporary_stats[stat]["flat_increase"] += value
 
     # This only occurs if the status effect is popped out of the list
-    def delete_temp_stats(self, status_effect):
+    def delete_temp_stats(self, removed_status_effect):
         #  From the list of stats that are affected by the status effect
-        for stat, value in {k:v for k, v in status_effect.effects.items() if v != 0}.items():
+        for stat, value in {k:v for k, v in removed_status_effect.effects.items() if v != 0}.items():
             if "percent" in stat:
                 stat_affected = stat.split('_')[1]
                 self.temporary_stats[stat_affected]["percent_increase"] = self.temporary_stats[stat_affected]["percent_increase"] - value
@@ -187,70 +189,88 @@ class Party:
         units_repr = [repr(unit) for unit in self.units]
         return f"Party(units={units_repr}, gold={self.gold}, rations={self.rations}, inventory={self.inventory})"
 
+   @property
+   def unit_count(self):
+       return len(self.units)
+
+   def add_unit(self, unit):
+       self.units.append(unit)
+
+   def remove_unit(self, unit):
+       self.units.remove(unit)
+
+   def add_gold(self, added_gold):
+       self.gold += added_gold
+
+   def remove_gold(self, removed_gold):
+       if (self.gold - removed_gold) < 0:
+           raise InsufficientGoldError("Not enough gold!")
+       self.gold -= removed_gold
 
 
-class StatusEffect:
-    def __init__(self, name, duration, description):
-        self.name = name
-        self.duration = duration
-        self.description = description
-        self.effects = {
-            "strength": 0,
-            "percent_strength": 0,
-            "defense": 0,
-            "percent_defense": 0,
-            "resistance": 0,
-            "percent_resistance": 0,
-            "dexterity": 0,
-            "percent_dexterity": 0,
-            "speed": 0,
-            "percent_speed": 0,
-            "luck": 0,
-            "percent_luck": 0
-        }
 
-    def __str__(self):
-        return f"{self.name}: {self.description} ({self.duration} Turn/s)\n" + self.read_effects()
-
-    def __repr__(self):
-        return f"StatusEffect(name={self.name}, duration={self.duration}, description={self.description}, effects={self.effects})"
-
-    def read_effects(self):
-        effects = ""
-        for key in self.effects:
-            if self.effects[key] != 0:
-                if self.effects[key] > 0:
-                    effects += f"{key.capitalize()}: +{self.effects[key]}"
-                elif self.effects[key] < 0:
-                    effects += f"{key.capitalize()}: {self.effects[key]}"
-                if "percent" in key:
-                    effects += "%"
-                effects += "\n"
-        return effects
-
-    def apply_effect(self, stat, value):
-        if stat in self.effects:
-            self.effects[stat] = value
-        else:
-            print("Invalid stat!")
-
-testingStatusEffect = StatusEffect("Testing", 3, "Testing Effects")
-testingStatusEffect.apply_effect("strength", 10)
-
-testingStatusEffect2 = StatusEffect("More Testing", 1, "Bees")
-testingStatusEffect2.apply_effect("percent_strength", -10)
-
-hardenEffect = StatusEffect("Harden", 3, "Minor defense increase")
-hardenEffect.apply_effect("defense", 10)
-
-resistEffect = StatusEffect("Resist", 3, "Minor resistance increase")
-resistEffect.apply_effect("resistance", 10)
-
-accuracyEffect = StatusEffect("Accuracy", 3, "Minor dexterity increase")
-accuracyEffect.apply_effect("dexterity", 20)
-
-speedEffect = StatusEffect("Speed", 3, "Minor speed increase")
-speedEffect.apply_effect("speed", 10)
-
-luckyEffect = StatusEffect("Lucky", 3, "Minor luck increase")
-luckyEffect.apply_effect("luck", 70)
+# class StatusEffect:
+#     def __init__(self, name, duration, description):
+#         self.name = name
+#         self.duration = duration
+#         self.description = description
+#         self.effects = {
+#             "strength": 0,
+#             "percent_strength": 0,
+#             "defense": 0,
+#             "percent_defense": 0,
+#             "resistance": 0,
+#             "percent_resistance": 0,
+#             "dexterity": 0,
+#             "percent_dexterity": 0,
+#             "speed": 0,
+#             "percent_speed": 0,
+#             "luck": 0,
+#             "percent_luck": 0
+#         }
+#
+#     def __str__(self):
+#         return f"{self.name}: {self.description} ({self.duration} Turn/s)\n" + self.read_effects()
+#
+#     def __repr__(self):
+#         return f"StatusEffect(name={self.name}, duration={self.duration}, description={self.description}, effects={self.effects})"
+#
+#     def read_effects(self):
+#         effects = ""
+#         for key in self.effects:
+#             if self.effects[key] != 0:
+#                 if self.effects[key] > 0:
+#                     effects += f"{key.capitalize()}: +{self.effects[key]}"
+#                 elif self.effects[key] < 0:
+#                     effects += f"{key.capitalize()}: {self.effects[key]}"
+#                 if "percent" in key:
+#                     effects += "%"
+#                 effects += "\n"
+#         return effects
+#
+#     def apply_effect(self, stat, value):
+#         if stat in self.effects:
+#             self.effects[stat] = value
+#         else:
+#             print("Invalid stat!")
+#
+# testingStatusEffect = StatusEffect("Testing", 3, "Testing Effects")
+# testingStatusEffect.apply_effect("strength", 10)
+#
+# testingStatusEffect2 = StatusEffect("More Testing", 1, "Bees")
+# testingStatusEffect2.apply_effect("percent_strength", -10)
+#
+# hardenEffect = StatusEffect("Harden", 3, "Minor defense increase")
+# hardenEffect.apply_effect("defense", 10)
+#
+# resistEffect = StatusEffect("Resist", 3, "Minor resistance increase")
+# resistEffect.apply_effect("resistance", 10)
+#
+# accuracyEffect = StatusEffect("Accuracy", 3, "Minor dexterity increase")
+# accuracyEffect.apply_effect("dexterity", 20)
+#
+# speedEffect = StatusEffect("Speed", 3, "Minor speed increase")
+# speedEffect.apply_effect("speed", 10)
+#
+# luckyEffect = StatusEffect("Lucky", 3, "Minor luck increase")
+# luckyEffect.apply_effect("luck", 70)

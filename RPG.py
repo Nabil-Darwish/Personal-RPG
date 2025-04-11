@@ -6,9 +6,7 @@ import unit
 from enum import Enum
 from colorama import init, Fore
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion
-from unit import testingStatusEffect, testingStatusEffect2, hardenEffect, resistEffect, accuracyEffect, speedEffect, luckyEffect
-
-soundtrack_mute = False
+from status_effect import testingStatusEffect, testingStatusEffect2, hardenEffect, resistEffect, accuracyEffect, speedEffect, luckyEffect
 
 class FightOutcome(Enum):
     PLAYER_VICTORY = 0
@@ -99,7 +97,7 @@ def initialise_player_and_enemy(name):
 # Main gameplay loop
 def main():
     init()
-    soundtrack_mute = True
+    soundtrack_mute = False
     stop_event = music.initialise_music()
     music.start_music_thread(stop_event, "music/cats.wav", soundtrack_mute)
     name = input("What's your name? \n")
