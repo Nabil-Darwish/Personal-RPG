@@ -7,6 +7,12 @@ BASE_CHANCE_HIT = 50
 class InsufficientGoldError(Exception):
     pass
 
+class UnitNotFoundError(Exception):
+    pass
+
+class InsufficientRationsError(Exception):
+    pass
+
 # Unit class. A unit is a character that is the main entity in a combat scenasrio
 class Unit:
     def __init__(self, name, player, physical, max_hp, strength, defense, resistance, dexterity, speed, luck, hp = None):
@@ -197,6 +203,8 @@ class Party:
        self.units.append(unit)
 
    def remove_unit(self, unit):
+       if unit not in self.units:
+           raise UnitNotFoundError("Unit not found!")
        self.units.remove(unit)
 
    def add_gold(self, added_gold):
@@ -207,70 +215,44 @@ class Party:
            raise InsufficientGoldError("Not enough gold!")
        self.gold -= removed_gold
 
+   def add_rations(self, added_rations):
+       self.rations += added_rations
 
+   def remove_rations(self, removed_rations):
+       if (self.rations - removed_rations) < 0:
+           raise InsufficientRationsError("Not enough rations!")
+       self.rations -= removed_rations
 
-# class StatusEffect:
-#     def __init__(self, name, duration, description):
-#         self.name = name
-#         self.duration = duration
-#         self.description = description
-#         self.effects = {
-#             "strength": 0,
-#             "percent_strength": 0,
-#             "defense": 0,
-#             "percent_defense": 0,
-#             "resistance": 0,
-#             "percent_resistance": 0,
-#             "dexterity": 0,
-#             "percent_dexterity": 0,
-#             "speed": 0,
-#             "percent_speed": 0,
-#             "luck": 0,
-#             "percent_luck": 0
-#         }
-#
-#     def __str__(self):
-#         return f"{self.name}: {self.description} ({self.duration} Turn/s)\n" + self.read_effects()
-#
-#     def __repr__(self):
-#         return f"StatusEffect(name={self.name}, duration={self.duration}, description={self.description}, effects={self.effects})"
-#
-#     def read_effects(self):
-#         effects = ""
-#         for key in self.effects:
-#             if self.effects[key] != 0:
-#                 if self.effects[key] > 0:
-#                     effects += f"{key.capitalize()}: +{self.effects[key]}"
-#                 elif self.effects[key] < 0:
-#                     effects += f"{key.capitalize()}: {self.effects[key]}"
-#                 if "percent" in key:
-#                     effects += "%"
-#                 effects += "\n"
-#         return effects
-#
-#     def apply_effect(self, stat, value):
-#         if stat in self.effects:
-#             self.effects[stat] = value
-#         else:
-#             print("Invalid stat!")
-#
-# testingStatusEffect = StatusEffect("Testing", 3, "Testing Effects")
-# testingStatusEffect.apply_effect("strength", 10)
-#
-# testingStatusEffect2 = StatusEffect("More Testing", 1, "Bees")
-# testingStatusEffect2.apply_effect("percent_strength", -10)
-#
-# hardenEffect = StatusEffect("Harden", 3, "Minor defense increase")
-# hardenEffect.apply_effect("defense", 10)
-#
-# resistEffect = StatusEffect("Resist", 3, "Minor resistance increase")
-# resistEffect.apply_effect("resistance", 10)
-#
-# accuracyEffect = StatusEffect("Accuracy", 3, "Minor dexterity increase")
-# accuracyEffect.apply_effect("dexterity", 20)
-#
-# speedEffect = StatusEffect("Speed", 3, "Minor speed increase")
-# speedEffect.apply_effect("speed", 10)
-#
-# luckyEffect = StatusEffect("Lucky", 3, "Minor luck increase")
-# luckyEffect.apply_effect("luck", 70)
+   def read_inventory(self):
+       if len(self.inventory) == 0:
+           print("Inventory is empty!\n")
+       for key in self.inventory:
+           print(self.inventory[key])
+
+   def get_item(self):
+       for index, (key, value) in enumerate(self.inventory.items()):
+           print(f"{index + 1}. {self.inventory[key]}")
+
+       while True:
+           choice = input("What do you want to use?\n")
+           if choice.isdigit() and 1 <= int(choice) <= len(self.inventory):
+               choice = int(choice) - 1
+               break
+           else:
+               print("Please enter a valid number!\n")
+
+       item_name = list(self.inventory.keys())[choice]
+
+       return item_name
+
+   def add_inventory(self, item):
+       if item.name in self.inventory:
+           self.inventory[item.name].stack_size += item.stack_size
+       else:
+           self.inventory[item.name] = item
+
+   def remove_inventory(self, item_name):
+       if self.inventory[item_name].stack_size > 1:
+           self.inventory[item_name].stack_size -= 1
+       else:
+           self.inventory.pop(item_name)
