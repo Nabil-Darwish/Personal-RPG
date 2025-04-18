@@ -10,7 +10,9 @@ def initialise_music():
     return threading.Event()
 
 # Start a music thread
-def start_music_thread(stop_event, sound_file):
+def start_music_thread(stop_event, sound_file, mute=False):
+    if mute:
+        return
     music_thread = threading.Thread(target=looping_music, args=(stop_event, sound_file), daemon=True)
     music_thread.start()
 
@@ -20,7 +22,9 @@ def stop_current_music_thread(stop_event):
     time.sleep(0.1)
 
 # Looping music
-def looping_music(stop_event, sound_file):
+def looping_music(stop_event, sound_file, mute=False):
+    if mute:
+        return
     pygame.mixer.music.load(sound_file)
     pygame.mixer.music.play(-1)  # Play music in a loop
     while not stop_event.is_set():
@@ -28,6 +32,8 @@ def looping_music(stop_event, sound_file):
     pygame.mixer.music.stop()
 
 # Stop the current music and play a new one
-def stop_and_play_music(sound_file):
+def stop_and_play_music(sound_file, mute=False):
+    if mute:
+        return
     pygame.mixer.music.load(sound_file)
     pygame.mixer.music.play()
