@@ -82,41 +82,6 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         for observer in self.observers:
             observer.update(self)
 
-    # If there are no items of the type, then add entry to dictionary. Otherwise, add stack size
-    def add_item(self, item):
-        if item.name in self.inventory:
-            self.inventory[item.name].stack_size += item.stack_size
-        else:
-            self.inventory[item.name] = item
-
-    def read_inventory(self):
-        if len(self.inventory) == 0:
-            print("Inventory is empty!\n")
-        for key in self.inventory:
-            print(self.inventory[key])
-
-    def get_item(self):
-        for index, (key, value) in enumerate(self.inventory.items()):
-            print(f"{index + 1}. {self.inventory[key]}")
-
-        while True:
-            choice = input("What do you want to use?\n")
-            if choice.isdigit() and 1 <= int(choice) <= len(self.inventory):
-                choice = int(choice) - 1
-                break
-            else:
-                print("Please enter a valid number!\n")
-
-        item_name = list(self.inventory.keys())[choice]
-
-        return item_name
-
-    def remove_item(self, item_name):
-        if self.inventory[item_name].stack_size > 1:
-            self.inventory[item_name].stack_size -= 1
-        else:
-            self.inventory.pop(item_name)
-
     def add_status_effect(self, added_status_effect):
         # Get the status effect from the list of status effects applied to the unit by name
         self.status_effects[added_status_effect.name] = added_status_effect
@@ -159,7 +124,8 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 self.delete_temp_stats(status_effect)
 
     def attack(self, enemy):
-        input(f"\n{self.name} attacks {enemy.name}!")
+        print(f"\n{self.name} attacks {enemy.name}!")
+        util.pause(500)
         hit_chance = BASE_CHANCE_HIT + self.get_temp_stat("dexterity")
         print(f"Hit chance: {hit_chance}")
         random_variable = random.randint(0, 100)
@@ -173,17 +139,20 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
             if random_variable <= self.get_temp_stat("luck"):                  # Critical Hit
                 damage = damage * 2
                 print("Critical Hit!")
-            print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})!\n")
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
+            print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})! {enemy.name} has {enemy.hp} HP left!\n")
+            util.pause(800)
             if enemy.hp == 0:
                 print(f"{enemy.name} is dead!\n")
+                util.pause(500)
                 enemy.notify_observers()
         else:
             print("Miss!\n")
 
     def heal(self, heal_amount):
-        input("Healing!\n")
+        print("Healing!\n")
+        util.pause(500)
         if self.hp > (self.max_hp - heal_amount):
             self.hp = self.max_hp
         else:
@@ -208,6 +177,10 @@ class Party:
    def __repr__(self):
         units_repr = [repr(unit) for unit in self.units]
         return f"Party(units={units_repr}, gold={self.gold}, rations={self.rations}, inventory={self.inventory})"
+
+   def show_units(self):
+       for unit in self.units:
+           print(unit)
 
    @property
    def unit_count(self):
