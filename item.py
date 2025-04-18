@@ -1,23 +1,43 @@
 import util
+from enum import Enum
+
+# This defines how an item is used (could be changed later)
+class ItemUse(Enum):
+    # item affects all in own party
+    SELF_PARTY = 1
+    # item affects one unit in own party
+    UNIT_IN_SELF_PARTY = 2
+    # item affects selected unit
+    SELF_UNIT = 3
+    # item affects all in enemy party
+    ENEMY_PARTY = 4
+    # item affects one unit in enemy party
+    ENEMY_UNIT = 5
+    # item affects all units
+    ALL_UNITS = 6
+    # item can be used on any of the parties
+    BOTH_PARTIES = 7
+
 
 # This defines the item superclass
 class Item:
-    def __init__(self, name, description, stack_size=1):
+    def __init__(self, name, description, item_use, stack_size=1):
         self.name = name
         self.description = description
+        self.item_use = item_use
         self.stack_size = stack_size
 
 #     def __repr__(self):
 
 # Defines the Potion superclass
 class Potion(Item):
-    def __init__(self, name, description, stack_size=1):
-        super().__init__(name, description, stack_size)
+    def __init__(self, name, description, item_use, stack_size=1):
+        super().__init__(name, description, item_use, stack_size)
 
 # Defines the HealthPotion subclass
 class HealthPotion(Potion):
     def __init__(self, name, description, stack_size, heal_amount):
-        super().__init__(name, description, stack_size)
+        super().__init__(name, description, ItemUse.SELF_UNIT, stack_size)
         self.heal_amount = heal_amount
 
     def __repr__(self):
@@ -34,7 +54,7 @@ class HealthPotion(Potion):
 # Defines poison potions that work instantly
 class InstantPoisonPotion(Potion):
     def __init__(self, name, description, stack_size, damage_amount):
-        super().__init__(name, description, stack_size)
+        super().__init__(name, description, ItemUse.ENEMY_UNIT ,stack_size)
         self.damage_amount = damage_amount
 
     def __repr__(self):
@@ -46,6 +66,9 @@ class InstantPoisonPotion(Potion):
         enemy_unit.hp = util.not_less_zero(enemy_unit.hp)
         print(f"{unit.name} damages {enemy_unit.name} for {self.damage_amount}, back to {enemy_unit.hp}!\n")
         print(enemy_unit)
+        if enemy_unit.hp == 0:
+            print(f"{enemy_unit.name} is dead!\n")
+            enemy_unit.notify_observers()
 
 
 #     def __eq__(self, other):

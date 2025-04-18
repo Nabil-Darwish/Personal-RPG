@@ -40,6 +40,7 @@ class Unit:
             "speed": {"flat_increase": 0, "percent_increase": 0},
             "luck": {"flat_increase": 0, "percent_increase": 0}
         }
+        self.observers = []
 
     def __repr__(self):
         return (
@@ -70,6 +71,16 @@ SPD : {self.stats["speed"]} ({self.get_temp_stat("speed")})
 LCK : {self.stats["luck"]} ({self.get_temp_stat("luck")})
 
 Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
+
+    def add_observer(self, observer):
+        self.observers.append(observer)
+
+    def remove_observer(self, observer):
+        self.observers.remove(observer)
+
+    def notify_observers(self):
+        for observer in self.observers:
+            observer.update(self)
 
     # If there are no items of the type, then add entry to dictionary. Otherwise, add stack size
     def add_item(self, item):
@@ -165,6 +176,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
             print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})!\n")
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
+            if enemy.hp == 0:
+                print(f"{enemy.name} is dead!\n")
+                enemy.notify_observers()
         else:
             print("Miss!\n")
 
@@ -179,8 +193,8 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
 
 
 class Party:
-   def __init__(self, units, gold, rations):
-       self.units = units
+   def __init__(self, gold, rations):
+       self.units = []
        self.gold = gold
        self.rations = rations
        self.inventory = {}
@@ -199,12 +213,17 @@ class Party:
    def unit_count(self):
        return len(self.units)
 
+   def update(self, unit):
+       self.remove_unit(unit)
+
    def add_unit(self, unit):
        self.units.append(unit)
+       unit.add_observer(self)
 
    def remove_unit(self, unit):
        if unit not in self.units:
            raise UnitNotFoundError("Unit not found!")
+       unit.remove_observer(self)
        self.units.remove(unit)
 
    def add_gold(self, added_gold):
