@@ -1,0 +1,5 @@
+{unit_name} slashes {enemy_name} across the chest!
+{unit_name} slashes {enemy_name} across the arm!
+{unit_name} slashes {enemy_name} across the leg!
+{unit_name} slashes {enemy_name} across the back!
+{enemy_name} tries to dodge but {unit_name} is too fast!
