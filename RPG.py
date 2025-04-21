@@ -5,6 +5,7 @@ import unit
 import functools
 from enum import Enum
 from colorama import init, Fore
+from tabulate import tabulate
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion, \
     ItemUse
 from status_effect import testingStatusEffect, testingStatusEffect2, hardenEffect, resistEffect, accuracyEffect, speedEffect, luckyEffect
@@ -32,12 +33,12 @@ class CombatManager:
 
     # This is how the start of each turn is handled
     def start_battle(self):
+        os.system('cls')
+        self.show_party_stats()
+        input("Press enter to proceed to turn 1.")
         while True:
             os.system('cls')
-            print("ALLIES: \n")
-            self.player_party.show_units()
-            print("ENEMIES: \n")
-            self.enemy_party.show_units()
+            self.show_party_tables()
             turn_order = self.get_turn_order()
             for unit_turn in turn_order:
                 if unit_turn.hp == 0:
@@ -47,6 +48,24 @@ class CombatManager:
                 if self.outcome is not None:
                     return self.outcome
             input("Press enter to proceed to next turn.")
+
+    def show_party_stats(self):
+        print(Fore.GREEN + "ALLIES: \n" + Fore.RESET)
+        self.player_party.show_units()
+        print(Fore.RED + "ENEMIES: \n" + Fore.RESET)
+        self.enemy_party.show_units()
+
+    def show_party_tables(self):
+        os.system('cls')
+        print(Fore.GREEN + "ALLIES: \n" + Fore.RESET)
+        player_table = tabulate(self.player_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid")
+        print(player_table)
+        print(f"{self.player_party.get_status_effects_units()}")
+        print(Fore.RED + "ENEMIES: \n" + Fore.RESET)
+        enemy_table = tabulate(self.enemy_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid")
+        print(enemy_table)
+        print(f"{self.enemy_party.get_status_effects_units()}")
+
 
     # This is how the turn order is decided
     def get_turn_order(self):
@@ -98,7 +117,6 @@ class CombatManager:
     def handle_item_use(self, player_unit, player_party):
         item_name = player_party.get_item()
         item = player_party.inventory[item_name]
-        has_backed_out = False
         if item.item_use == ItemUse.SELF_UNIT:
             has_backed_out = self.use_item_on_self(player_unit, item)
         elif item.item_use == ItemUse.ENEMY_UNIT:
@@ -151,7 +169,7 @@ def initialise_player_and_enemy(name):
 # Main gameplay loop
 def main():
     init()
-    soundtrack_mute = True
+    soundtrack_mute = False
     stop_event = music.initialise_music()
     music.start_music_thread(stop_event, "music/cats.wav", soundtrack_mute)
     name = input("What's your name? \n")

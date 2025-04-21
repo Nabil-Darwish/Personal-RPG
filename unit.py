@@ -63,14 +63,25 @@ class Unit:
         return f"""Name: {self.name}
 PHYS: {self.physical}
 HP  : {self.hp}/{self.max_hp}   
-STR : {self.stats["strength"]} ({self.get_temp_stat("strength")})
-DEF : {self.stats["defense"]} ({self.get_temp_stat("defense")})
-RES : {self.stats["resistance"]} ({self.get_temp_stat("resistance")})
-DEX : {self.stats["dexterity"]} ({self.get_temp_stat("dexterity")})
-SPD : {self.stats["speed"]} ({self.get_temp_stat("speed")})
-LCK : {self.stats["luck"]} ({self.get_temp_stat("luck")})
+STR : {self.get_stat_with_effects("strength")}
+DEF : {self.get_stat_with_effects("defense")}
+RES : {self.get_stat_with_effects("resistance")}
+DEX : {self.get_stat_with_effects("dexterity")}
+SPD : {self.get_stat_with_effects("speed")}
+LCK : {self.get_stat_with_effects("luck")}
 
 Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
+
+    def acronymised_stats(self):
+        acronym_map = {
+            "strength": "STR",
+            "defense": "DEF",
+            "resistance": "RES",
+            "dexterity": "DEX",
+            "speed": "SPD",
+            "luck": "LCK"
+        }
+        return {acronym_map[k]: self.get_stat_with_effects(k) for k, v in self.stats.items()}
 
     def add_observer(self, observer):
         self.observers.append(observer)
@@ -92,6 +103,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
             else:
                 self.temporary_stats[stat]["flat_increase"] += value
 
+    def get_status_effects_str(self):
+        return ', '.join(map(str, self.status_effects.values()))
+
     # This only occurs if the status effect is popped out of the list
     def delete_temp_stats(self, removed_status_effect):
         #  From the list of stats that are affected by the status effect
@@ -111,6 +125,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
     def get_temp_stat(self, temp_stat):
         # Add flat increase and multiply percentage increase with the current stat
         return math.floor(self.stats[temp_stat] * (self.temporary_stats[temp_stat]["percent_increase"] + 100) / 100 + self.temporary_stats[temp_stat]["flat_increase"])
+
+    def get_stat_with_effects(self, stat):
+        return str(self.stats[stat]) + " (" + str(self.get_temp_stat(stat)) + ")"
 
     def decrease_status_effect_durations(self):
         if len(self.status_effects) == 0:
@@ -181,6 +198,24 @@ class Party:
    def show_units(self):
        for unit in self.units:
            print(unit)
+
+   def is_player_party(self):
+       return self.units[0].player
+
+   def get_units_stats_list_dict(self):
+       units_stats_list_dict = []
+       for unit in self.units:
+           unit_stats = {"Name": unit.name, "HP/Full HP": str(unit.hp) + "/" + str(unit.max_hp), **unit.acronymised_stats()}
+           units_stats_list_dict.append(unit_stats)
+       return units_stats_list_dict
+
+   def get_status_effects_units(self):
+       party_status_effects_txt = ""
+       for unit in self.units:
+           if len(unit.status_effects) > 0:
+               party_status_effects_txt += unit.name + ":\n"
+               party_status_effects_txt += unit.get_status_effects_str() + "\n"
+       return party_status_effects_txt
 
    @property
    def unit_count(self):
