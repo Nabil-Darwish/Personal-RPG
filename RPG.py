@@ -171,7 +171,7 @@ def initialise_player_and_enemy(name):
 # Main gameplay loop
 def main():
     init()
-    soundtrack_mute = True
+    soundtrack_mute = False
     stop_event = music.initialise_music()
     music.start_music_thread(stop_event, "music/cats.wav", soundtrack_mute)
     name = input("What's your name? \n")
