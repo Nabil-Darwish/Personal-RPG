@@ -1,6 +1,7 @@
 import random
 import util
 import math
+import text_renderer
 
 BASE_CHANCE_HIT = 50
 
@@ -158,6 +159,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 print("Critical Hit!")
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
+            text_renderer.all_placeholders["unit_name"] = self.name
+            text_renderer.all_placeholders["enemy_name"] = enemy.name
+            text_renderer.render_text("light_attacks")
             print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})! {enemy.name} has {enemy.hp} HP left!\n")
             util.pause(800)
             if enemy.hp == 0:

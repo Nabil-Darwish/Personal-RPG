@@ -1,15 +1,17 @@
 import os
+import random
 import threading
 import music
 import unit
 import functools
+import text_renderer
 from enum import Enum
 from colorama import init, Fore
 from tabulate import tabulate
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion, \
     ItemUse
 from status_effect import testingStatusEffect, testingStatusEffect2, hardenEffect, resistEffect, accuracyEffect, speedEffect, luckyEffect
-from util import Option, OptionPicker, pick_random_from
+from util import Option, OptionPicker
 
 INVALID_SELECTION = "Invalid Selection!"
 class FightOutcome(Enum):
@@ -149,7 +151,7 @@ class CombatManager:
 
     # Enemy AI. For now, just attacks
     def enemy_turn(self, selected_enemy_unit):
-        selected_enemy_unit.attack(pick_random_from(self.player_party.units))
+        selected_enemy_unit.attack(random.choice(self.player_party.units))
 
 
 # Initialises the player and the enemy
