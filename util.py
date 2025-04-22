@@ -13,6 +13,12 @@ def pick_random_from(l):
     random_variable = random.randint(0, len(l)-1)
     return l[random_variable]
 
+def update_dict_with_valid_key(dictionary, key, value):
+    if key in dictionary:
+        dictionary[key] = value
+    else:
+        raise KeyError(f"Key {key} does not exist in the dictionary")
+
 class Option:
     def __init__(self, text, function):
         self.text = text
