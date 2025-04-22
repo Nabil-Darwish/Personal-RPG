@@ -159,10 +159,7 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 print("Critical Hit!")
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
-            text_renderer.all_placeholders["unit_name"] = self.name
-            text_renderer.all_placeholders["enemy_name"] = enemy.name
-            text_renderer.render_text("light_attacks")
-            print(f"{self.name} hits {enemy.name} for {damage} ({hit_chance})! {enemy.name} has {enemy.hp} HP left!\n")
+            self.render_hit(enemy, damage)
             util.pause(800)
             if enemy.hp == 0:
                 print(f"{enemy.name} is dead!\n")
@@ -170,6 +167,16 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 enemy.notify_observers()
         else:
             print("Miss!\n")
+
+    def render_hit(self, enemy, damage):
+        text_renderer.all_placeholders["unit_name"] = self.name
+        text_renderer.all_placeholders["enemy_name"] = enemy.name
+        text_renderer.all_placeholders["damage"] = str(damage)
+        text_renderer.all_placeholders["current_enemy_hp"] = enemy.hp
+        if damage >= enemy.max_hp * 0.5:
+            text_renderer.render_text("heavy_attacks")
+        else:
+            text_renderer.render_text("light_attacks")
 
     def heal(self, heal_amount):
         print("Healing!\n")

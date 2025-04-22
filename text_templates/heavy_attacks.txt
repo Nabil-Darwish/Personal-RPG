@@ -1,0 +1,5 @@
+{unit_name} stabs {enemy_name} straight through the chest, dealing {damage} damage! {enemy_name} has {current_enemy_hp} HP left!
+{unit_name} makes a deep cut on {enemy_name}'s stomach, dealing {damage} damage. Blood spurts out! {enemy_name} has {current_enemy_hp} HP left!
+{enemy_name}'s eyes widened as a sharp pain shoots up as {unit_name}'s weapon hits in their chest, dealing {damage} damage! {enemy_name} has {current_enemy_hp} HP left!
+{unit_name}'s attack struck true, crushing {enemy_name} beneath its force and sending them stumbling backward, dealing {damage} damage. {enemy_name} has {current_enemy_hp} HP left!
+{unit_name} unleashed a devastating blow, striking {enemy_name} with incredible force and leaving them reeling from the impact, dealing {damage} damage. {enemy_name} has {current_enemy_hp} HP left!
