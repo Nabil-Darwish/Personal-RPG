@@ -4,9 +4,8 @@ import music
 import unit
 import combat_manager
 from colorama import init, Fore
-from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion, HealthPotion, InstantPoisonPotion, \
-    ItemUse
-from status_effect import testingStatusEffect, testingStatusEffect2, hardenEffect, resistEffect, accuracyEffect, speedEffect, luckyEffect
+from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion
+from status_effect import luckyEffect
 from util import FightOutcome
 
 # Initialises the player and the enemy
