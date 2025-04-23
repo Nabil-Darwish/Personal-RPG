@@ -8,11 +8,11 @@ from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion
 from status_effect import luckyEffect
 from util import FightOutcome
 
-class RPG:
+class TerraIncognita:
     def __init__(self):
         init()
-        self.soundtrack_mute = False
-        self.stop_event = music.initialise_music()
+        self.music_manager = music.MusicManager()
+        self.name = "Terra Incognita"
 
     # Initialises the player and the enemy
     def initialise_player_and_enemy(self, name):
@@ -30,13 +30,12 @@ class RPG:
 
 # Main gameplay loop
 def main():
-    rpg = RPG()
-    music.start_music_thread(rpg.stop_event, "music/cats.wav", rpg.soundtrack_mute)
+    rpg = TerraIncognita()
+    rpg.music_manager.start_music_thread("music/cats.wav")
     name = input("What's your name? \n")
     os.system('cls')
-    music.stop_current_music_thread(rpg.stop_event)
-    rpg.stop_event = threading.Event()
-    music.start_music_thread(rpg.stop_event, "music/riff.wav", rpg.soundtrack_mute)
+    rpg.music_manager.stop_current_music_thread()
+    rpg.music_manager.start_music_thread("music/riff.wav")
     player_party, enemy_party = rpg.initialise_player_and_enemy(name)
     player_party.add_inventory(smallHealthPotion)
     player_party.add_inventory(largeHealthPotion)
@@ -46,12 +45,12 @@ def main():
     combat = combat_manager.CombatManager(player_party, enemy_party)
     combat.start_battle()
 
-    music.stop_current_music_thread(rpg.stop_event)
+    rpg.music_manager.stop_current_music_thread()
     if combat.outcome == FightOutcome.PLAYER_VICTORY:
-        music.stop_and_play_music('music/victory.wav', rpg.soundtrack_mute)
+        rpg.music_manager.stop_and_play_music('music/victory.wav')
         input("Congatulations\n")
     else:
-        music.stop_and_play_music('music/game over.wav', rpg.soundtrack_mute)
+        rpg.music_manager.stop_and_play_music('music/game over.wav')
         input("Sorry! Try again!\n")
     
 
