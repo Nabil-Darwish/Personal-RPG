@@ -1,5 +1,10 @@
 import random
 import pygame
+from enum import Enum
+
+class FightOutcome(Enum):
+    PLAYER_VICTORY = 0
+    ENEMY_VICTORY = 1
 
 def pause(ticks):
     pygame.time.wait(ticks)
