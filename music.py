@@ -4,6 +4,11 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import threading
 
+class MusicManager:
+    def __init__(self):
+        self.soundtrack_mute = False
+        self.stop_event = None
+
 # Initialise music
 def initialise_music():
     pygame.mixer.init()
@@ -20,6 +25,12 @@ def start_music_thread(stop_event, sound_file, mute=False):
 def stop_current_music_thread(stop_event):
     stop_event.set()
     time.sleep(0.1)
+
+def change_music(sound_file, stop_event, mute=False):
+    stop_current_music_thread(stop_event)
+    stop_event = threading.Event()
+    start_music_thread(stop_event, sound_file, mute)
+    return stop_event
 
 # Looping music
 def looping_music(stop_event, sound_file, mute=False):
