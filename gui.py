@@ -8,15 +8,16 @@ class GUI:
     def __init__(self):
         self.observers = {}
         self.title = ""
+        self.window_manager = WindowManager()
 
     def start_screen(self):
         self.notify_observers(GUINotification.MUSIC_PLAY)
-        window = tk.Tk()
-        window.title(self.title)
-        window.geometry("800x600")
-        button = tk.Button(window, text="Change Music", command=lambda : self.notify_observers(GUINotification.MUSIC_CHANGE, "music/riff.wav"))
+        self.window_manager.start_window()
+        button = tk.Button(self.window_manager.window, text="Change Music", command=lambda : self.notify_observers(GUINotification.MUSIC_CHANGE, "music/riff.wav"))
         button.pack(padx=10, pady=10)
-        window.mainloop()
+        change_title_button = tk.Button(self.window_manager.window, text="Change Title", command=lambda : self.window_manager.update_window(self.title))
+        change_title_button.pack(padx=10, pady=10)
+        self.window_manager.window.mainloop()
 
     def add_observer(self, notification_type, observer):
         if notification_type not in self.observers:
@@ -36,3 +37,15 @@ class GUI:
 
     def change_title(self, title):
         self.title = title
+
+class WindowManager:
+    def __init__(self):
+        self.window = None
+
+    def start_window(self):
+        self.window = tk.Tk()
+        self.window.title("RPG")
+        self.window.geometry("800x600")
+
+    def update_window(self, new_title):
+        self.window.title(new_title)
