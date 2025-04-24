@@ -2,18 +2,22 @@ import os
 import threading
 import gui
 import music
+import rpg_enum
 import unit
 import combat_manager
 from colorama import init, Fore
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion
 from status_effect import luckyEffect
-from rpg_enum import FightOutcome
+from rpg_enum import FightOutcome, GUINotification
 
 class TerraIncognita:
     def __init__(self):
         init()
         self.music_manager = music.MusicManager()
         self.gui = gui.GUI()
+        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
+        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
+        self.gui.start_screen()
         self.name = "Terra Incognita"
 
     # Initialises the player and the enemy
@@ -29,6 +33,13 @@ class TerraIncognita:
         enemy_party.add_unit(enemy_unit)
         enemy_party.add_unit(enemy_unit_2)
         return player_party, enemy_party
+
+    def start_music(self):
+        self.music_manager.start_music_thread("music/cats.wav")
+
+    def change_music(self, sound_file):
+        self.music_manager.stop_current_music_thread()
+        self.music_manager.start_music_thread(sound_file)
 
 # Main gameplay loop
 def main():
