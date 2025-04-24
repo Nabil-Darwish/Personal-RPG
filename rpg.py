@@ -1,5 +1,3 @@
-import os
-import threading
 import gui
 import music
 import rpg_enum
@@ -14,7 +12,7 @@ class TerraIncognita:
     def __init__(self):
         init()
         self.combat_manager = None
-        self.music_manager = music.MusicManager(True)
+        self.music_manager = music.MusicManager(False)
         self.name = "Terra Incognita"
         self.gui = None
         self.initialise_gui()
