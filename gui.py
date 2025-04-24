@@ -17,8 +17,9 @@ class GUI(Subject):
         self.starting_widgets()
         self.window_manager.window.mainloop()
 
-    def change_title(self, title):
+    def update_title(self, title):
         self.title = title
+
 
     def query_player_name(self):
         self.window_manager.clear_frame()
@@ -31,6 +32,7 @@ class GUI(Subject):
         name_submit.pack(padx=10, pady=10)
 
     def starting_widgets(self):
+        self.window_manager.update_window(self.title)
 
         game_title_label = tk.Label(self.window_manager.window, text=self.title.upper(), font=("Castellar", 30))
         game_title_label.pack(padx=10, pady=10)
@@ -50,6 +52,25 @@ class GUI(Subject):
 
         button_accept = tk.Button(self.window_manager.window, text="Accept", command=lambda : self.change_label_font(test_label, font_choice.get()))
         button_accept.pack(padx=10, pady=10)
+
+    def initial_stats_screen(self, both_parties):
+        self.window_manager.clear_frame()
+
+        player_text = tk.Text(self.window_manager.window)
+        player_text.grid(row=0, column=0)
+        player_text.insert(tk.END, both_parties[0])
+        player_text.tag_add("green", "1.0", "1.end")
+        player_text.tag_config("green", foreground="green")
+
+        enemy_text = tk.Text(self.window_manager.window)
+        enemy_text.grid(row=0, column=2)
+        enemy_text.insert(tk.END, both_parties[1])
+        enemy_text.tag_add("red", "1.0", "1.end")
+        enemy_text.tag_config("red", foreground="red")
+
+        turn_1_button = tk.Button(self.window_manager.window, text="Go to turn 1")
+        turn_1_button.grid(row=1, column=1)
+
 
     def change_label_font(self, label, font):
         label.configure(font=(font, 30)) # (font)

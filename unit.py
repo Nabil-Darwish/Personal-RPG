@@ -207,8 +207,10 @@ class Party:
         return f"Party(units={units_repr}, gold={self.gold}, rations={self.rations}, inventory={self.inventory})"
 
    def show_units(self):
+       units_text = ""
        for unit in self.units:
-           print(unit)
+           units_text = units_text + str(unit) + "\n"
+       return units_text
 
    def is_player_party(self):
        return self.units[0].player

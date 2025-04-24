@@ -40,7 +40,7 @@ class TerraIncognita:
         self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
         self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_NAME_SUBMITTED, self.initialise_player_and_enemy)
-        self.gui.change_title(self.name)
+        self.gui.update_title(self.name)
         self.gui.start_screen()
 
     def initialise_combat(self, player_party, enemy_party):
@@ -48,9 +48,9 @@ class TerraIncognita:
         self.music_manager.start_music_thread("music/riff.wav")
         self.combat_manager = combat_manager.CombatManager(player_party, enemy_party)
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_ATTACK, self.combat_manager.player_attack)
-        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_INVENTORY, self.combat_manager.player_inventory)
+        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_INVENTORY, self.combat_manager.player_party.read_inventory)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.INITIAL_STATS_SCREEN, self.initial_stats_screen)
         self.combat_manager.start_battle()
-        self.end_combat()
 
     def end_combat(self):
         self.music_manager.stop_current_music_thread()
@@ -60,6 +60,9 @@ class TerraIncognita:
         else:
             self.music_manager.stop_and_play_music('music/game over.wav')
             input("Sorry! Try again!\n")
+
+    def initial_stats_screen(self, both_parties):
+        self.gui.initial_stats_screen(both_parties)
 
     def start_music(self):
         self.music_manager.start_music_thread("music/cats.wav")

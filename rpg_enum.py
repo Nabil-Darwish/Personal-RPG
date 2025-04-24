@@ -12,3 +12,9 @@ class GUINotification(Enum):
     MUSIC_PLAY = auto()
     MUSIC_CHANGE = auto()
     MUSIC_MUTE = auto()
+
+class CombatNotification(Enum):
+    INITIAL_STATS_SCREEN = auto()
+    MAIN_BATTLE_SCREEN = auto()
+    INVENTORY_SCREEN = auto()
+    PICK_ENEMY_SCREEN = auto()

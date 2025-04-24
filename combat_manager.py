@@ -3,6 +3,7 @@ import functools
 import os
 from colorama import Fore
 from tabulate import tabulate
+import rpg_enum
 from item import HealthPotion, InstantPoisonPotion, ItemUse
 from util import Option, OptionPicker, Subject
 from rpg_enum import FightOutcome
@@ -45,13 +46,10 @@ class CombatManager(Subject):
     #         input("Press enter to proceed to next turn.")
 
     def start_battle(self):
-        pass
+        self.notify_observers(rpg_enum.CombatNotification.INITIAL_STATS_SCREEN, self.show_party_stats())
 
     def show_party_stats(self):
-        print(Fore.GREEN + "ALLIES: \n" + Fore.RESET)
-        self.player_party.show_units()
-        print(Fore.RED + "ENEMIES: \n" + Fore.RESET)
-        self.enemy_party.show_units()
+        return ("ALLIES: \n" + self.player_party.show_units(), "ENEMIES: \n" + self.enemy_party.show_units())
 
     def show_party_tables(self):
         os.system('cls')
