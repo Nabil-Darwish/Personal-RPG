@@ -1,17 +1,19 @@
 import os
 import threading
+import gui
 import music
 import unit
 import combat_manager
 from colorama import init, Fore
 from item import smallHealthPotion, largeHealthPotion, smallInstantHarmingPotion
 from status_effect import luckyEffect
-from util import FightOutcome
+from rpg_enum import FightOutcome
 
 class TerraIncognita:
     def __init__(self):
         init()
         self.music_manager = music.MusicManager()
+        self.gui = gui.GUI()
         self.name = "Terra Incognita"
 
     # Initialises the player and the enemy

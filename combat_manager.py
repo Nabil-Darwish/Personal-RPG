@@ -4,7 +4,8 @@ import os
 from colorama import Fore
 from tabulate import tabulate
 from item import HealthPotion, InstantPoisonPotion, ItemUse
-from util import Option, OptionPicker, FightOutcome
+from util import Option, OptionPicker
+from rpg_enum import FightOutcome
 
 INVALID_SELECTION = "Invalid Selection!"
 
