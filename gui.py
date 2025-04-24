@@ -13,10 +13,7 @@ class GUI:
     def start_screen(self):
         self.notify_observers(GUINotification.MUSIC_PLAY)
         self.window_manager.start_window()
-        button = tk.Button(self.window_manager.window, text="Change Music", command=lambda : self.notify_observers(GUINotification.MUSIC_CHANGE, "music/riff.wav"))
-        button.pack(padx=10, pady=10)
-        change_title_button = tk.Button(self.window_manager.window, text="Change Title", command=lambda : self.window_manager.update_window(self.title))
-        change_title_button.pack(padx=10, pady=10)
+        self.query_player_name()
         self.window_manager.window.mainloop()
 
     def add_observer(self, notification_type, observer):
@@ -34,9 +31,20 @@ class GUI:
         if notification_type in self.observers:
             for observer in self.observers[notification_type]:
                 observer(*args, **kwargs)
+        else:
+            raise ObserverNotFoundError("Observer not found in notification type given!")
 
     def change_title(self, title):
         self.title = title
+
+    def query_player_name(self):
+        name_var = tk.StringVar()
+        name_label = tk.Label(self.window_manager.window, text="What's your name?")
+        name_entry = tk.Entry(self.window_manager.window, textvariable=name_var)
+        name_submit = tk.Button(self.window_manager.window, text="Submit", command=lambda : self.notify_observers(GUINotification.PLAYER_NAME_SUBMITTED, name_var.get()))
+        name_label.pack(padx=10, pady=10)
+        name_entry.pack(padx=10, pady=10)
+        name_submit.pack(padx=10, pady=10)
 
 class WindowManager:
     def __init__(self):

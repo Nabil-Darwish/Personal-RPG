@@ -13,7 +13,8 @@ from rpg_enum import FightOutcome, GUINotification
 class TerraIncognita:
     def __init__(self):
         init()
-        self.music_manager = music.MusicManager()
+        self.combat_manager = None
+        self.music_manager = music.MusicManager(True)
         self.name = "Terra Incognita"
         self.gui = None
         self.initialise_gui()
@@ -30,14 +31,35 @@ class TerraIncognita:
         enemy_party = unit.Party( 0, 0)
         enemy_party.add_unit(enemy_unit)
         enemy_party.add_unit(enemy_unit_2)
-        return player_party, enemy_party
+        player_party.add_inventory(smallHealthPotion)
+        player_party.add_inventory(largeHealthPotion)
+        player_party.add_inventory(smallInstantHarmingPotion)
+        player_party.units[0].add_status_effect(luckyEffect)
+        self.initialise_combat(player_party, enemy_party)
 
     def initialise_gui(self):
         self.gui = gui.GUI()
         self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
         self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
+        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_NAME_SUBMITTED, self.initialise_player_and_enemy)
         self.gui.change_title(self.name)
         self.gui.start_screen()
+
+    def initialise_combat(self, player_party, enemy_party):
+        self.music_manager.stop_current_music_thread()
+        self.music_manager.start_music_thread("music/riff.wav")
+        self.combat_manager = combat_manager.CombatManager(player_party, enemy_party)
+        self.combat_manager.start_battle()
+        self.end_combat()
+
+    def end_combat(self):
+        self.music_manager.stop_current_music_thread()
+        if self.combat_manager.outcome == FightOutcome.PLAYER_VICTORY:
+            self.music_manager.stop_and_play_music('music/victory.wav')
+            input("Congatulations\n")
+        else:
+            self.music_manager.stop_and_play_music('music/game over.wav')
+            input("Sorry! Try again!\n")
 
     def start_music(self):
         self.music_manager.start_music_thread("music/cats.wav")
@@ -48,28 +70,7 @@ class TerraIncognita:
 
 # Main gameplay loop
 def main():
-    rpg = TerraIncognita()
-    rpg.music_manager.start_music_thread("music/cats.wav")
-    name = input("What's your name? \n")
-    os.system('cls')
-    rpg.music_manager.stop_current_music_thread()
-    rpg.music_manager.start_music_thread("music/riff.wav")
-    player_party, enemy_party = rpg.initialise_player_and_enemy(name)
-    player_party.add_inventory(smallHealthPotion)
-    player_party.add_inventory(largeHealthPotion)
-    player_party.add_inventory(smallInstantHarmingPotion)
-    player_party.units[0].add_status_effect(luckyEffect)
-
-    combat = combat_manager.CombatManager(player_party, enemy_party)
-    combat.start_battle()
-
-    rpg.music_manager.stop_current_music_thread()
-    if combat.outcome == FightOutcome.PLAYER_VICTORY:
-        rpg.music_manager.stop_and_play_music('music/victory.wav')
-        input("Congatulations\n")
-    else:
-        rpg.music_manager.stop_and_play_music('music/game over.wav')
-        input("Sorry! Try again!\n")
+    TerraIncognita()
     
 
 if __name__ == '__main__':
