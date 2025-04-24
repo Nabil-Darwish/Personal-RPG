@@ -14,11 +14,9 @@ class TerraIncognita:
     def __init__(self):
         init()
         self.music_manager = music.MusicManager()
-        self.gui = gui.GUI()
-        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
-        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
-        self.gui.start_screen()
         self.name = "Terra Incognita"
+        self.gui = None
+        self.initialise_gui()
 
     # Initialises the player and the enemy
     def initialise_player_and_enemy(self, name):
@@ -33,6 +31,13 @@ class TerraIncognita:
         enemy_party.add_unit(enemy_unit)
         enemy_party.add_unit(enemy_unit_2)
         return player_party, enemy_party
+
+    def initialise_gui(self):
+        self.gui = gui.GUI()
+        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
+        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
+        self.gui.change_title(self.name)
+        self.gui.start_screen()
 
     def start_music(self):
         self.music_manager.start_music_thread("music/cats.wav")
