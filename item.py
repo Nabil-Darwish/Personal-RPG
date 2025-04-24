@@ -1,5 +1,5 @@
 import util
-from enum import Enum
+from rpg_enum import Enum
 
 # This defines how an item is used (could be changed later)
 class ItemUse(Enum):
