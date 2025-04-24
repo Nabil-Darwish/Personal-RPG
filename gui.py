@@ -2,13 +2,12 @@ import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk
 from rpg_enum import GUINotification
+from util import Subject
 
-class ObserverNotFoundError(Exception):
-    pass
 
-class GUI:
+class GUI(Subject):
     def __init__(self):
-        self.observers = {}
+        super().__init__()
         self.title = ""
         self.window_manager = WindowManager()
 
@@ -17,24 +16,6 @@ class GUI:
         self.window_manager.start_window()
         self.starting_widgets()
         self.window_manager.window.mainloop()
-
-    def add_observer(self, notification_type, observer):
-        if notification_type not in self.observers:
-            self.observers[notification_type] = []
-        self.observers[notification_type].append(observer)
-
-    def remove_observer(self, notification_type, observer):
-        if observer in self.observers[notification_type]:
-            self.observers[notification_type].remove(observer)
-        else:
-            raise ObserverNotFoundError("Observer not found in notification type given!")
-
-    def notify_observers(self, notification_type, *args, **kwargs):
-        if notification_type in self.observers:
-            for observer in self.observers[notification_type]:
-                observer(*args, **kwargs)
-        else:
-            raise ObserverNotFoundError("Observer not found in notification type given!")
 
     def change_title(self, title):
         self.title = title
@@ -51,10 +32,10 @@ class GUI:
 
     def starting_widgets(self):
 
-        game_title_label = tk.Label(self.window_manager.window, text=self.title.upper(), font=("Colonna MT", 30))
+        game_title_label = tk.Label(self.window_manager.window, text=self.title.upper(), font=("Castellar", 30))
         game_title_label.pack(padx=10, pady=10)
 
-        start_button = tk.Button(self.window_manager.window, text="Start", height = 10, width = 30, command=self.query_player_name)
+        start_button = tk.Button(self.window_manager.window, text="Start", height = 5, width = 30, command=self.query_player_name)
         start_button.pack(padx=10, pady=10)
 
     def preview_fonts(self):

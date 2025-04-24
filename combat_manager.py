@@ -4,7 +4,7 @@ import os
 from colorama import Fore
 from tabulate import tabulate
 from item import HealthPotion, InstantPoisonPotion, ItemUse
-from util import Option, OptionPicker
+from util import Option, OptionPicker, Subject
 from rpg_enum import FightOutcome
 
 INVALID_SELECTION = "Invalid Selection!"
@@ -19,29 +19,33 @@ def item_use(player_unit, item, enemy_unit = None):
         raise ValueError("Unsupported item type: " + str(type(item)))
 
 # This is the combat manager that handles combat encounters
-class CombatManager:
+class CombatManager(Subject):
     def __init__(self, player_party, enemy_party):
+        super().__init__()
         self.player_party = player_party
         self.enemy_party = enemy_party
         self.outcome = None
 
     # This is how the start of each turn is handled
+    # def start_battle(self):
+    #     os.system('cls')
+    #     self.show_party_stats()
+    #     input("Press enter to proceed to turn 1.")
+    #     while True:
+    #         os.system('cls')
+    #         self.show_party_tables()
+    #         turn_order = self.get_turn_order()
+    #         for unit_turn in turn_order:
+    #             if unit_turn.hp == 0:
+    #                 # Skip dead units
+    #                 continue
+    #             self.handle_unit_turn(unit_turn)
+    #             if self.outcome is not None:
+    #                 return self.outcome
+    #         input("Press enter to proceed to next turn.")
+
     def start_battle(self):
-        os.system('cls')
-        self.show_party_stats()
-        input("Press enter to proceed to turn 1.")
-        while True:
-            os.system('cls')
-            self.show_party_tables()
-            turn_order = self.get_turn_order()
-            for unit_turn in turn_order:
-                if unit_turn.hp == 0:
-                    # Skip dead units
-                    continue
-                self.handle_unit_turn(unit_turn)
-                if self.outcome is not None:
-                    return self.outcome
-            input("Press enter to proceed to next turn.")
+        pass
 
     def show_party_stats(self):
         print(Fore.GREEN + "ALLIES: \n" + Fore.RESET)

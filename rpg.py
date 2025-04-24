@@ -47,6 +47,8 @@ class TerraIncognita:
         self.music_manager.stop_current_music_thread()
         self.music_manager.start_music_thread("music/riff.wav")
         self.combat_manager = combat_manager.CombatManager(player_party, enemy_party)
+        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_ATTACK, self.combat_manager.player_attack)
+        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_INVENTORY, self.combat_manager.player_inventory)
         self.combat_manager.start_battle()
         self.end_combat()
 

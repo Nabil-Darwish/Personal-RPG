@@ -1,6 +1,9 @@
 import random
 import pygame
 
+class ObserverNotFoundError(Exception):
+    pass
+
 def pause(ticks):
     pygame.time.wait(ticks)
 
@@ -46,3 +49,25 @@ class OptionPicker:
                 return True
             else:
                 print(self.error_message)
+
+class Subject:
+    def __init__(self):
+        self.observers = {}
+
+    def add_observer(self, notification_type, observer):
+        if notification_type not in self.observers:
+            self.observers[notification_type] = []
+        self.observers[notification_type].append(observer)
+
+    def remove_observer(self, notification_type, observer):
+        if observer in self.observers[notification_type]:
+            self.observers[notification_type].remove(observer)
+        else:
+            raise ObserverNotFoundError("Observer not found in notification type given!")
+
+    def notify_observers(self, notification_type, *args, **kwargs):
+        if notification_type in self.observers:
+            for observer in self.observers[notification_type]:
+                observer(*args, **kwargs)
+        else:
+            raise ObserverNotFoundError("Observer not found in notification type given!")
