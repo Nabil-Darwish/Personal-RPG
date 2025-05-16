@@ -49,7 +49,9 @@ class TerraIncognita:
         self.combat_manager = combat_manager.CombatManager(player_party, enemy_party)
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_ATTACK, self.combat_manager.player_attack)
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_INVENTORY, self.combat_manager.player_party.read_inventory)
+        self.gui.add_observer(rpg_enum.GUINotification.REQUEST_CURRENT_UNIT_TABLE, self.combat_manager.show_party_tables)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.INITIAL_STATS_SCREEN, self.initial_stats_screen)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, self.combat_grid_screen)
         self.combat_manager.start_battle()
 
     def end_combat(self):
@@ -64,6 +66,9 @@ class TerraIncognita:
     def initial_stats_screen(self, both_parties):
         self.gui.initial_stats_screen(both_parties)
 
+    def combat_grid_screen(self, both_parties_tables):
+        self.gui.combat_grid_screen(both_parties_tables)
+
     def start_music(self):
         self.music_manager.start_music_thread("music/cats.wav")
 
@@ -71,10 +76,15 @@ class TerraIncognita:
         self.music_manager.stop_current_music_thread()
         self.music_manager.start_music_thread(sound_file)
 
+    def toggle_soundtrack_mute(self):
+        self.music_manager.toggle_soundtrack_mute()
+
+    def request_unit_tables(self):
+        return self.combat_manager.player_party, self.combat_manager.enemy_party
+
 # Main gameplay loop
 def main():
     TerraIncognita()
-    
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,5 @@
 import random
 import functools
-import os
 from colorama import Fore
 from tabulate import tabulate
 import rpg_enum
@@ -52,15 +51,11 @@ class CombatManager(Subject):
         return ("ALLIES: \n" + self.player_party.show_units(), "ENEMIES: \n" + self.enemy_party.show_units())
 
     def show_party_tables(self):
-        os.system('cls')
-        print(Fore.GREEN + "ALLIES: \n" + Fore.RESET)
-        player_table = tabulate(self.player_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid")
-        print(player_table)
-        print(f"{self.player_party.get_status_effects_units()}")
-        print(Fore.RED + "ENEMIES: \n" + Fore.RESET)
-        enemy_table = tabulate(self.enemy_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid")
-        print(enemy_table)
-        print(f"{self.enemy_party.get_status_effects_units()}")
+        ally_table = "ALLIES: \n"
+        ally_table += tabulate(self.player_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid") + "\n" + self.player_party.get_status_effects_units()
+        enemy_table = "ENEMIES: \n"
+        enemy_table += tabulate(self.enemy_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid") + "\n" + self.enemy_party.get_status_effects_units()
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, (ally_table, enemy_table))
 
 
     # This is how the turn order is decided

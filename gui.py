@@ -68,9 +68,32 @@ class GUI(Subject):
         enemy_text.tag_add("red", "1.0", "1.end")
         enemy_text.tag_config("red", foreground="red")
 
-        turn_1_button = tk.Button(self.window_manager.window, text="Go to turn 1")
+        turn_1_button = tk.Button(self.window_manager.window, text="Go to turn 1", command=lambda: self.notify_observers(GUINotification.REQUEST_CURRENT_UNIT_TABLE))
         turn_1_button.grid(row=1, column=1)
 
+    def combat_grid_screen(self, both_parties_tables):
+        self.window_manager.clear_frame()
+
+        player_table = tk.Text(self.window_manager.window)
+        player_table.grid(row=0, column=0)
+        player_table.insert(tk.END, both_parties_tables[0])
+        player_table.tag_add("green", "1.0", "1.end")
+        player_table.tag_config("green", foreground="green")
+
+        enemy_table = tk.Text(self.window_manager.window)
+        enemy_table.grid(row=0, column=1)
+        enemy_table.insert(tk.END, both_parties_tables[1])
+        enemy_table.tag_add("red", "1.0", "1.end")
+        enemy_table.tag_config("red", foreground="red")
+
+        attack_button = tk.Button(self.window_manager.window, text="Attack", command=lambda: self.notify_observers(GUINotification.PLAYER_ATTACK))
+        attack_button.grid(row=1, column=0)
+
+        heal_button = tk.Button(self.window_manager.window, text="Heal", command=lambda: self.notify_observers(GUINotification.PLAYER_HEAL))
+        heal_button.grid(row=1, column=1)
+
+        inventory_button = tk.Button(self.window_manager.window, text="Inventory", command=lambda: self.notify_observers(GUINotification.PLAYER_INVENTORY))
+        inventory_button.grid(row=1, column=2)
 
     def change_label_font(self, label, font):
         label.configure(font=(font, 30)) # (font)
@@ -90,4 +113,4 @@ class WindowManager:
 
     def clear_frame(self):
         for widget in self.window.winfo_children():
-            widget.forget()
+            widget.destroy()
