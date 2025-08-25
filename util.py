@@ -22,11 +22,13 @@ def update_dict_with_valid_key(dictionary, key, value):
     else:
         raise KeyError(f"Key {key} does not exist in the dictionary")
 
+# DEPRECATED: Option for Option Picker which is not in use
 class Option:
     def __init__(self, text, function):
         self.text = text
         self.function = function
 
+# DEPRECATED: Option Picker that is used in the console. Currently using GUI to pick options
 class OptionPicker:
     def __init__(self, question, options, error_message, backable=False):
         self.question = question

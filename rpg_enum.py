@@ -4,7 +4,7 @@ class FightOutcome(Enum):
     PLAYER_VICTORY = auto()
     ENEMY_VICTORY = auto()
 
-# These are notifications coming from the GUI object
+# These are notifications coming from the GUI object. This represents commands that come from the GUI
 class GUINotification(Enum):
     PLAYER_NAME_SUBMITTED = auto()
     PLAYER_ATTACK = auto()
@@ -15,7 +15,7 @@ class GUINotification(Enum):
     MUSIC_CHANGE = auto()
     MUSIC_MUTE = auto()
 
-# These are notifications coming from the CombatManager
+# These are notifications coming from the CombatManager. This should represent the screens that need to be shown to the player
 class CombatNotification(Enum):
     COMBAT_GRID_SCREEN = auto()
     INITIAL_STATS_SCREEN = auto()

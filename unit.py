@@ -2,6 +2,7 @@ import random
 import util
 import math
 import text_renderer
+import item
 
 BASE_CHANCE_HIT = 50
 
@@ -16,7 +17,7 @@ class InsufficientRationsError(Exception):
 
 # Unit class. A unit is a character that is the main entity in a combat scenasrio
 class Unit:
-    def __init__(self, name, player, physical, max_hp, strength, defense, resistance, dexterity, speed, luck, hp = None):
+    def __init__(self, name: str, player: bool, physical: bool, max_hp: int, strength: int, defense: int, resistance: int, dexterity: int, speed: int, luck: int, hp: int = None):
         self.name = name
         self.player = player
         self.physical = physical
@@ -187,10 +188,10 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
             self.hp += heal_amount
         print(f"{self.name} heals for {heal_amount}, back to {self.hp}!")
 
-
+# A party is defined as an object with a list of units, some number of gold, rations and a dictionary of items
 
 class Party:
-   def __init__(self, gold, rations):
+   def __init__(self, gold: int, rations: int):
        self.units = []
        self.gold = gold
        self.rations = rations
@@ -234,31 +235,35 @@ class Party:
    def unit_count(self):
        return len(self.units)
 
-   def update(self, unit):
+   @property
+   def get_unit_names(self):
+       return [unit.name for unit in self.units]
+
+   def update(self, unit: Unit):
        self.remove_unit(unit)
 
-   def add_unit(self, unit):
+   def add_unit(self, unit: Unit):
        self.units.append(unit)
        unit.add_observer(self)
 
-   def remove_unit(self, unit):
+   def remove_unit(self, unit: Unit):
        if unit not in self.units:
            raise UnitNotFoundError("Unit not found!")
        unit.remove_observer(self)
        self.units.remove(unit)
 
-   def add_gold(self, added_gold):
+   def add_gold(self, added_gold: int):
        self.gold += added_gold
 
-   def remove_gold(self, removed_gold):
+   def remove_gold(self, removed_gold: int):
        if (self.gold - removed_gold) < 0:
            raise InsufficientGoldError("Not enough gold!")
        self.gold -= removed_gold
 
-   def add_rations(self, added_rations):
+   def add_rations(self, added_rations: int):
        self.rations += added_rations
 
-   def remove_rations(self, removed_rations):
+   def remove_rations(self, removed_rations: int):
        if (self.rations - removed_rations) < 0:
            raise InsufficientRationsError("Not enough rations!")
        self.rations -= removed_rations
@@ -285,13 +290,13 @@ class Party:
 
        return item_name
 
-   def add_inventory(self, item):
-       if item.name in self.inventory:
-           self.inventory[item.name].stack_size += item.stack_size
+   def add_inventory(self, added_item: item.Item):
+       if added_item.name in self.inventory:
+           self.inventory[added_item.name].stack_size += added_item.stack_size
        else:
-           self.inventory[item.name] = item
+           self.inventory[added_item.name] = added_item
 
-   def remove_inventory(self, item_name):
+   def remove_inventory(self, item_name: str):
        if self.inventory[item_name].stack_size > 1:
            self.inventory[item_name].stack_size -= 1
        else:
