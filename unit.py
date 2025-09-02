@@ -132,39 +132,69 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         return str(self.stats[stat]) + " (" + str(self.get_temp_stat(stat)) + ")"
 
     def decrease_status_effect_durations(self):
+        # If there are no status effects, do nothing
         if len(self.status_effects) == 0:
             return
+        # Decrease the duration of the status effects
         for status_effect_name in list(self.status_effects.keys()):
             status_effect = self.status_effects[status_effect_name]
+            # If the duration of the status effect is greater than 1, decrease it by 1
             if status_effect.duration > 1:
                 status_effect.duration -= 1
+            # Else, pop the status effect out of the list as it has expired
             else:
                 self.status_effects.pop(status_effect_name)
                 self.delete_temp_stats(status_effect)
 
+    # Unit attacks an enemy
     def attack(self, enemy):
+        # Placeholder to show that the attack is happening
         print(f"\n{self.name} attacks {enemy.name}!")
+
+        # Pause for a bit
         util.pause(500)
+
+        # Calculate hit chance
         hit_chance = BASE_CHANCE_HIT + self.get_temp_stat("dexterity")
+
+        # Print hit chance
         print(f"Hit chance: {hit_chance}")
+
+        # Roll a random number between 0 and 100
         random_variable = random.randint(0, 100)
         if random_variable <= hit_chance:
+            # Hit has occured. Roll another random number for critical hit
             random_variable = random.randint(0, 100)
             if self.physical:
+                # Physical attack
                 damage = self.get_temp_stat("strength") - enemy.get_temp_stat("defense")
             else:
-                damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")
+                # Magical attack
+                damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")\
+
+            # If the damage is less than 0, set it to 0. Might change it later to have a minimum damage to allow for agility playstyles
             damage = util.not_less_zero(damage)
             if random_variable <= self.get_temp_stat("luck"):                  # Critical Hit
+                # Critical hit is 2 times damage. Could change it to a variable instead, with certain characters having a higher multiplier
                 damage = damage * 2
                 print("Critical Hit!")
+
+            # Enemy HP is subtracted with damage. If it is less than 0, set it to 0
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
+
+            # Render the text used to hit
             self.render_hit(enemy, damage)
+
+            # Pause for a bit
             util.pause(800)
+
+            # If enemy HP is 0
             if enemy.hp == 0:
+                # Print that the enemy is dead
                 print(f"{enemy.name} is dead!\n")
                 util.pause(500)
+                # Notify enemy that it is dead
                 enemy.notify_observers()
         else:
             print("Miss!\n")

@@ -64,7 +64,7 @@ class CombatManager(Subject):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, (ally_table, enemy_table), (self.player_party.get_unit_names, self.enemy_party.get_unit_names))
 
 
-    # DEPRECATED: This is how the turn order is decided
+    # DEPRECATED: This is how the turn order is decided. Gives list of all units sorted by speed. Higher speed first
     def get_turn_order(self):
         return sorted(self.player_party.units + self.enemy_party.units, key=lambda unit: unit.get_temp_stat("speed"), reverse=True)
 

@@ -17,6 +17,21 @@ class TerraIncognita:
         self.gui = None
         self.initialise_gui()
 
+    def initialise_gui(self):
+        # Initialising GUI
+        self.gui = gui.GUI()
+
+        # Adding flag observers with appropriate functions
+        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
+        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
+        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_NAME_SUBMITTED, self.initialise_player_and_enemy)
+
+        # Update
+        self.gui.update_title(self.name)
+
+        # Showing start screen
+        self.gui.start_screen()
+
     # Initialises the player and the enemy when a name is submitted back to the game
     def initialise_player_and_enemy(self, name):
         # Generating player party
@@ -42,21 +57,6 @@ class TerraIncognita:
         # Initialising combat system
         self.initialise_combat(player_party, enemy_party)
 
-    def initialise_gui(self):
-        # Initialising GUI
-        self.gui = gui.GUI()
-
-        # Adding flag observers with appropriate functions
-        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_PLAY, self.start_music)
-        self.gui.add_observer(rpg_enum.GUINotification.MUSIC_CHANGE, self.change_music)
-        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_NAME_SUBMITTED, self.initialise_player_and_enemy)
-
-        # Update
-        self.gui.update_title(self.name)
-
-        # Showing start screen
-        self.gui.start_screen()
-
     def initialise_combat(self, player_party, enemy_party):
         # Stop music and start battle music
         self.music_manager.stop_current_music_thread()
@@ -65,14 +65,14 @@ class TerraIncognita:
         # Initialising the combat manager
         self.combat_manager = combat_manager.CombatManager(player_party, enemy_party)
 
-        # Adding flag observers to gui with appropriate functions
+        # Adding flag observers from gui to combat manager with appropriate functions
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_ATTACK, self.combat_manager.player_attack)
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_INVENTORY, self.combat_manager.player_party.read_inventory)
         self.gui.add_observer(rpg_enum.GUINotification.REQUEST_CURRENT_UNIT_TABLE, self.combat_manager.show_party_tables)
 
-        # Adding flag observers to combat manager with appropriate functions
-        self.combat_manager.add_observer(rpg_enum.CombatNotification.INITIAL_STATS_SCREEN, self.initial_stats_screen)
-        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, self.combat_grid_screen)
+        # Adding flag observers from combat manager to GUI with appropriate functions
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.INITIAL_STATS_SCREEN, self.gui.initial_stats_screen)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, self.gui.combat_grid_screen)
 
         # Starting the battle
         self.combat_manager.start_battle()
@@ -86,14 +86,6 @@ class TerraIncognita:
         else:
             self.music_manager.stop_and_play_music('music/game over.wav')
             input("Sorry! Try again!\n")
-
-    def initial_stats_screen(self, both_parties):
-        # Sending initial stats to the gui
-        self.gui.initial_stats_screen(both_parties)
-
-    def combat_grid_screen(self, both_parties_tables, both_parties_name_list):
-        # Sending information to the GUI. Probably should rename
-        self.gui.combat_grid_screen(both_parties_tables, both_parties_name_list)
 
     def start_music(self):
         self.music_manager.start_music_thread("music/cats.wav")
