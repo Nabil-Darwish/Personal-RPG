@@ -67,12 +67,19 @@ class TerraIncognita:
 
         # Adding flag observers from gui to combat manager with appropriate functions
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_ATTACK, self.combat_manager.player_attack)
+        self.gui.add_observer(rpg_enum.GUINotification.PLAYER_HEAL, self.combat_manager.player_heal)
         self.gui.add_observer(rpg_enum.GUINotification.PLAYER_INVENTORY, self.combat_manager.player_party.read_inventory)
         self.gui.add_observer(rpg_enum.GUINotification.REQUEST_CURRENT_UNIT_TABLE, self.combat_manager.show_party_tables)
+        self.gui.add_observer(rpg_enum.GUINotification.REQUEST_UNIT_TURN_ORDER, self.combat_manager.get_new_turn_order)
+        self.gui.add_observer(rpg_enum.GUINotification.REQUEST_NEXT_UNIT, self.combat_manager.get_next_turn_unit)
 
         # Adding flag observers from combat manager to GUI with appropriate functions
         self.combat_manager.add_observer(rpg_enum.CombatNotification.INITIAL_STATS_SCREEN, self.gui.initial_stats_screen)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, self.gui.combat_grid_screen)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_NEW_TURN_ORDER, self.gui.new_turn_order_received)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, self.gui.add_combat_log_text)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, self.gui.player_turn)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, self.gui.enemy_turn)
 
         # Starting the battle
         self.combat_manager.start_battle()

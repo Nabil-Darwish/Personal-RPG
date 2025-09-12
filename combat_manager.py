@@ -26,6 +26,9 @@ class CombatManager(Subject):
         self.player_party = player_party
         self.enemy_party = enemy_party
         self.outcome = None
+        self.turn_order_list = []
+        self.current_unit = None
+        self.current_turn = 0
 
     # This is how the start of each turn is handled
     # def start_battle(self):
@@ -63,19 +66,27 @@ class CombatManager(Subject):
         # Send the information back to the GUI
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, (ally_table, enemy_table), (self.player_party.get_unit_names, self.enemy_party.get_unit_names))
 
+    # Get the new turn order
+    def get_new_turn_order(self):
+        self.current_turn += 1
+        self.turn_order_list = sorted(self.player_party.units + self.enemy_party.units, key=lambda current_unit: current_unit.get_temp_stat("speed"), reverse=True)
+        turn_text = "TURN " + str(self.current_turn) + "\n"
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_NEW_TURN_ORDER, turn_text)
 
-    # DEPRECATED: This is how the turn order is decided. Gives list of all units sorted by speed. Higher speed first
-    def get_turn_order(self):
-        return sorted(self.player_party.units + self.enemy_party.units, key=lambda unit: unit.get_temp_stat("speed"), reverse=True)
+    def get_next_turn_unit(self):
+        # return self.turn_order_list.pop(0)
+        self.current_unit = self.turn_order_list.pop(0)
+        self.handle_unit_turn(self.current_unit)
 
-    # DEPRECATED: If the unit is a player unit, hand control to the player. Otherwise, hand control to the AI
+
+    # If the unit is a player unit, hand control to the player. Otherwise, hand control to the AI
     def handle_unit_turn(self, unit: unit.Unit):
         if unit.player:
             self.handle_player_turn(unit)
         else:
             self.handle_enemy_turn(unit)
 
-    # DEPRECATED: This is how the player's turn is handled
+    # This is how the player's turn is handled
     def handle_player_turn(self, selected_player_unit: unit.Unit):
         self.player_turn(selected_player_unit)
         selected_player_unit.decrease_status_effect_durations()
@@ -90,26 +101,9 @@ class CombatManager(Subject):
             print("Player Party has been defeated!")
             self.outcome = FightOutcome.ENEMY_VICTORY
 
-    # DEPRECATED: Give the options available to the player. This is where player decision is made
+    # Give the options available to the player. This is where player decision is made
     def player_turn(self, selected_unit: unit.Unit):
-        print(f"{selected_unit.name}'s turn!")
-        turn_options = "What do you want to do?\n1. Attack\n2. Check Inventory\n3. Use Item\n"
-        has_used_item = False
-        player_party = selected_unit.observers[0]
-        # If there are still enemy units, loop
-        while has_used_item == False and len(self.enemy_party.units) > 0:
-            selection = input(turn_options)
-            if selection == "1":
-                if not self.player_attack(selected_unit):
-                    break
-            elif selection == "2":
-                player_party.read_inventory()
-            elif selection == "3" and has_used_item == False:
-                if not self.handle_item_use(selected_unit, player_party):
-                    has_used_item = True
-                    turn_options = turn_options.replace("3. Use Item\n", Fore.LIGHTBLACK_EX + "3. Use Item\n" + Fore.RESET)
-            else:
-                print(INVALID_SELECTION)
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, f"{selected_unit.name}'s turn! \n", selected_unit.name)
 
     # DEPRECATED
     def handle_item_use(self, player_unit: unit.Unit, player_party: unit.Party):
@@ -141,13 +135,13 @@ class CombatManager(Subject):
         return item_option_picker.pick()
 
     # DEPRECATED
-    def player_attack(self, selected_player_unit: unit.Unit, selected_enemy_unit: unit.Unit = None):
-        options = []
-        for enemy_unit in self.enemy_party.units:
-            options.append(Option(enemy_unit.name, functools.partial(selected_player_unit.attack, enemy_unit)))
-        enemy_option_picker = OptionPicker("Which enemy to attack?", options, INVALID_SELECTION, True)
-        return enemy_option_picker.pick()
+    def player_attack(self, selected_enemy_unit_name: str):
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} attacks {selected_enemy_unit_name}!")
 
-    # DISCONNECTED: Enemy AI. For now, just attacks
+    def player_heal(self, selected_target_name: str):
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} heals {selected_target_name}!")
+
+    # Enemy AI. For now, just attacks
     def enemy_turn(self, selected_enemy_unit):
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, f"{selected_enemy_unit.name}'s turn!")
         selected_enemy_unit.attack(random.choice(self.player_party.units))
