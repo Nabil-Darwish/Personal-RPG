@@ -7,7 +7,6 @@ from typing import List
 from rpg_enum import GUINotification
 from util import Subject
 
-
 class GUI(Subject):
     def __init__(self):
         super().__init__()
@@ -118,6 +117,12 @@ class GUI(Subject):
     def add_combat_log_text(self, text: str):
         self.combat_window.add_text_to_combat_log(text)
 
+    def update_player_table(self, table_text: str):
+        self.combat_window.update_player_table(table_text)
+
+    def update_enemy_table(self, table_text: str):
+        self.combat_window.update_enemy_table(table_text)
+
     def change_label_font(self, label, font):
         label.configure(font=(font, 30)) # (font)
 
@@ -219,6 +224,18 @@ class CombatScreen(Subject):
     def add_text_to_combat_log(self, text: str):
         self.combat_log.insert(tk.END, text)
         self.combat_log.see(tk.END)
+
+    def update_player_table(self, table: str):
+        self.player_table.delete("1.0", tk.END)
+        self.player_table.insert(tk.END, table)
+        self.player_table.tag_add("green", "1.0", "1.end")
+        self.player_table.tag_config("green", foreground="green")
+
+    def update_enemy_table(self, table: str):
+        self.enemy_table.delete("1.0", tk.END)
+        self.enemy_table.insert(tk.END, table)
+        self.enemy_table.tag_add("red", "1.0", "1.end")
+        self.enemy_table.tag_config("red", foreground="red")
 
     def select_one_from_list(self, title: str, options: List[str], x: int, y: int, function = None):
         # Create selection frame

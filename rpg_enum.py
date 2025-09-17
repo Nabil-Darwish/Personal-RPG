@@ -21,7 +21,10 @@ class GUINotification(Enum):
 class CombatNotification(Enum):
     COMBAT_GRID_SCREEN = auto()
     COMBAT_GRID_NEW_TURN_ORDER = auto()
+    COMBAT_GRID_UNIT_TURN_END = auto()
     COMBAT_GRID_LOG_TEXT_UPDATE = auto()
+    COMBAT_GRID_PLAYER_TABLE_UPDATE = auto()
+    COMBAT_GRID_ENEMY_TABLE_UPDATE = auto()
     COMBAT_GRID_PLAYER_TURN = auto()
     COMBAT_GRID_ENEMY_TURN = auto()
     INITIAL_STATS_SCREEN = auto()

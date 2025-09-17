@@ -147,10 +147,7 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 self.delete_temp_stats(status_effect)
 
     # Unit attacks an enemy
-    def attack(self, enemy):
-        # Placeholder to show that the attack is happening
-        print(f"\n{self.name} attacks {enemy.name}!")
-
+    def attack(self, enemy, command_to_update_text_box):
         # Pause for a bit
         util.pause(500)
 
@@ -158,7 +155,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         hit_chance = BASE_CHANCE_HIT + self.get_temp_stat("dexterity")
 
         # Print hit chance
-        print(f"Hit chance: {hit_chance}")
+        command_to_update_text_box(f"Hit chance: {hit_chance}\n")
+
+        util.pause(100)
 
         # Roll a random number between 0 and 100
         random_variable = random.randint(0, 100)
@@ -170,34 +169,40 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 damage = self.get_temp_stat("strength") - enemy.get_temp_stat("defense")
             else:
                 # Magical attack
-                damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")\
+                damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")
 
             # If the damage is less than 0, set it to 0. Might change it later to have a minimum damage to allow for agility playstyles
             damage = util.not_less_zero(damage)
             if random_variable <= self.get_temp_stat("luck"):                  # Critical Hit
+                util.pause(100)
                 # Critical hit is 2 times damage. Could change it to a variable instead, with certain characters having a higher multiplier
                 damage = damage * 2
-                print("Critical Hit!")
+                command_to_update_text_box("Critical Hit!\n")
 
             # Enemy HP is subtracted with damage. If it is less than 0, set it to 0
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
 
+            util.pause(100)
+
             # Render the text used to hit
-            self.render_hit(enemy, damage)
+            hit_line = self.render_hit(enemy, damage)
+            print(hit_line)
+            command_to_update_text_box(hit_line)
 
             # Pause for a bit
-            util.pause(800)
+            util.pause(500)
 
             # If enemy HP is 0
             if enemy.hp == 0:
                 # Print that the enemy is dead
-                print(f"{enemy.name} is dead!\n")
+                command_to_update_text_box(f"{enemy.name} is dead!\n")
                 util.pause(500)
                 # Notify enemy that it is dead
                 enemy.notify_observers()
         else:
-            print("Miss!\n")
+            util.pause(100)
+            command_to_update_text_box("Miss!\n\n")
 
     def render_hit(self, enemy, damage):
         text_renderer.all_placeholders["unit_name"] = self.name
@@ -205,9 +210,9 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         text_renderer.all_placeholders["damage"] = str(damage)
         text_renderer.all_placeholders["current_enemy_hp"] = enemy.hp
         if damage >= enemy.max_hp * 0.5:
-            text_renderer.render_text("heavy_attacks")
+            return text_renderer.render_text("heavy_attacks") + "\n"
         else:
-            text_renderer.render_text("light_attacks")
+            return text_renderer.render_text("light_attacks") + "\n"
 
     def heal(self, heal_amount):
         print("Healing!\n")
@@ -281,6 +286,9 @@ class Party:
            raise UnitNotFoundError("Unit not found!")
        unit.remove_observer(self)
        self.units.remove(unit)
+
+   def get_unit(self, unit_name: str):
+       return next((unit for unit in self.units if unit.name == unit_name), None)
 
    def add_gold(self, added_gold: int):
        self.gold += added_gold

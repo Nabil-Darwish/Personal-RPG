@@ -19,4 +19,4 @@ def render_text(text_name):
     line = random.choice(possible_lines)
 
     line = line.format(**all_placeholders)
-    print(line)
+    return line

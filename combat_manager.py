@@ -30,23 +30,8 @@ class CombatManager(Subject):
         self.current_unit = None
         self.current_turn = 0
 
-    # This is how the start of each turn is handled
-    # def start_battle(self):
-    #     os.system('cls')
-    #     self.show_party_stats()
-    #     input("Press enter to proceed to turn 1.")
-    #     while True:
-    #         os.system('cls')
-    #         self.show_party_tables()
-    #         turn_order = self.get_turn_order()
-    #         for unit_turn in turn_order:
-    #             if unit_turn.hp == 0:
-    #                 # Skip dead units
-    #                 continue
-    #             self.handle_unit_turn(unit_turn)
-    #             if self.outcome is not None:
-    #                 return self.outcome
-    #         input("Press enter to proceed to next turn.")
+    def partial_log_update_function(self):
+        return functools.partial(self.notify_observers, rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE)
 
     def start_battle(self):
         # This is how the start of each battle is done. Call on the initial stats screen and send the party stats
@@ -57,14 +42,22 @@ class CombatManager(Subject):
         return "ALLIES: \n" + self.player_party.show_units(), "ENEMIES: \n" + self.enemy_party.show_units()
 
     def show_party_tables(self):
-        # This is called when the GUI needs the current stat tables
-        ally_table = "ALLIES: \n"
-        ally_table += tabulate(self.player_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid") + "\n" + self.player_party.get_status_effects_units()
-        enemy_table = "ENEMIES: \n"
-        enemy_table += tabulate(self.enemy_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid") + "\n" + self.enemy_party.get_status_effects_units()
+        # This is called when the GUI needs the current stat tables after the initial party stats
+        ally_table = self.get_ally_table()
+        enemy_table = self.get_enemy_table()
 
         # Send the information back to the GUI
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, (ally_table, enemy_table), (self.player_party.get_unit_names, self.enemy_party.get_unit_names))
+
+    def get_ally_table(self):
+        ally_table = "ALLIES: \n"
+        ally_table += tabulate(self.player_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid") + "\n" + self.player_party.get_status_effects_units()
+        return ally_table
+
+    def get_enemy_table(self):
+        enemy_table = "ENEMIES: \n"
+        enemy_table += tabulate(self.enemy_party.get_units_stats_list_dict(), headers="keys", tablefmt="grid") + "\n" + self.enemy_party.get_status_effects_units()
+        return enemy_table
 
     # Get the new turn order
     def get_new_turn_order(self):
@@ -74,10 +67,8 @@ class CombatManager(Subject):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_NEW_TURN_ORDER, turn_text)
 
     def get_next_turn_unit(self):
-        # return self.turn_order_list.pop(0)
         self.current_unit = self.turn_order_list.pop(0)
         self.handle_unit_turn(self.current_unit)
-
 
     # If the unit is a player unit, hand control to the player. Otherwise, hand control to the AI
     def handle_unit_turn(self, unit: unit.Unit):
@@ -134,14 +125,35 @@ class CombatManager(Subject):
         item_option_picker = OptionPicker("Which enemy to use the item on?", options, INVALID_SELECTION, True)
         return item_option_picker.pick()
 
-    # DEPRECATED
-    def player_attack(self, selected_enemy_unit_name: str):
-        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} attacks {selected_enemy_unit_name}!")
+    def handle_turn_order(self):
+        if len(self.turn_order_list) == 0:
+            self.get_new_turn_order()
+        else:
+            self.get_next_turn_unit()
 
-    def player_heal(self, selected_target_name: str):
-        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} heals {selected_target_name}!")
+    def player_attack(self, selected_enemy_unit_name: str):
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} attacks {selected_enemy_unit_name}!\n")
+        try:
+            selected_unit = self.enemy_party.get_unit(selected_enemy_unit_name)
+            # partial_enemy_table_update_function = functools.partial(self.notify_observers, rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE)
+            self.current_unit.attack(selected_unit, self.partial_log_update_function())
+            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE, self.get_enemy_table())
+        except KeyError:
+            print("Invalid Selection")
+            return
+
+        if len(self.turn_order_list) == 0:
+            self.get_new_turn_order()
+        else:
+            self.get_next_turn_unit()
+
+    def player_heal(self, selected_target_name: str, is_player: bool):
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} heals {selected_target_name}!\n")
 
     # Enemy AI. For now, just attacks
     def enemy_turn(self, selected_enemy_unit):
-        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, f"{selected_enemy_unit.name}'s turn!")
-        selected_enemy_unit.attack(random.choice(self.player_party.units))
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, f"{selected_enemy_unit.name}'s turn!\n")
+        selected_enemy_unit.attack(random.choice(self.player_party.units), self.partial_log_update_function())
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TABLE_UPDATE, self.get_ally_table())
+
+        self.get_next_turn_unit()

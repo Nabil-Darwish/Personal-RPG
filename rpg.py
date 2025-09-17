@@ -78,6 +78,8 @@ class TerraIncognita:
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_SCREEN, self.gui.combat_grid_screen)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_NEW_TURN_ORDER, self.gui.new_turn_order_received)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, self.gui.add_combat_log_text)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TABLE_UPDATE, self.gui.update_player_table)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE, self.gui.update_enemy_table)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, self.gui.player_turn)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, self.gui.enemy_turn)
 
