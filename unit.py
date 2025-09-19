@@ -200,9 +200,14 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
                 util.pause(500)
                 # Notify enemy that it is dead
                 enemy.notify_observers()
+                return True
+            else:
+                # If enemy is not dead, return false
+                return False
         else:
             util.pause(100)
             command_to_update_text_box("Miss!\n\n")
+            return False
 
     def render_hit(self, enemy, damage):
         text_renderer.all_placeholders["unit_name"] = self.name

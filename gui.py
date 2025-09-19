@@ -1,6 +1,7 @@
 import functools
 import tkinter as tk
 import tkinter.font as tkFont
+from time import sleep
 from tkinter import ttk
 from typing import List
 
@@ -75,6 +76,7 @@ class GUI(Subject):
         player_text.insert(tk.END, both_parties[0])
         player_text.tag_add("green", "1.0", "1.end")
         player_text.tag_config("green", foreground="green")
+        player_text.config(state = tk.DISABLED)
 
         # Create an enemy textbox to preview stats
         enemy_text = tk.Text(self.window_manager.window)
@@ -83,6 +85,7 @@ class GUI(Subject):
         enemy_text.insert(tk.END, both_parties[1])
         enemy_text.tag_add("red", "1.0", "1.end")
         enemy_text.tag_config("red", foreground="red")
+        enemy_text.config(state = tk.DISABLED)
 
         # Create a button to start the battle. It raises the flag calling for the current unit table
         turn_1_button = tk.Button(self.window_manager.window, text="Start battle!", command=lambda: self.notify_observers(GUINotification.REQUEST_CURRENT_UNIT_TABLE))
@@ -123,6 +126,16 @@ class GUI(Subject):
     def update_enemy_table(self, table_text: str):
         self.combat_window.update_enemy_table(table_text)
 
+    def update_attack_button(self, attack_button_list):
+        self.combat_window.update_attack_button(attack_button_list)
+
+    def update_heal_button(self, heal_button_list):
+        self.combat_window.update_heal_button(heal_button_list)
+
+    def deactivate_heal_button(self):
+        self.combat_window.action_buttons_inactivated()
+        sleep(0.5)
+
     def change_label_font(self, label, font):
         label.configure(font=(font, 30)) # (font)
 
@@ -155,6 +168,7 @@ class CombatScreen(Subject):
         self.player_table.insert(tk.END, both_parties_tables[0])
         self.player_table.tag_add("green", "1.0", "1.end")
         self.player_table.tag_config("green", foreground="green")
+        self.player_table.config(state = tk.DISABLED)
 
         # Configure the player scrollbar
         player_scrollbar.config(command=self.player_table.xview)
@@ -173,6 +187,7 @@ class CombatScreen(Subject):
         self.enemy_table.insert(tk.END, both_parties_tables[1])
         self.enemy_table.tag_add("red", "1.0", "1.end")
         self.enemy_table.tag_config("red", foreground="red")
+        self.enemy_table.config(state = tk.DISABLED)
 
         # Configure the enemy scrollbar
         enemy_scrollbar.config(command=self.enemy_table.xview)
@@ -193,13 +208,13 @@ class CombatScreen(Subject):
         self.combat_log = tk.Text(combat_log_frame, wrap=tk.NONE, yscrollcommand=combat_log_scrollbar.set, xscrollcommand=combat_log_scrollbar.set)
         self.combat_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.combat_log.insert(tk.END, "Combat start! \n")
+        self.combat_log.config(state = tk.DISABLED)
 
         # Configure the combat log scrollbar
         combat_log_scrollbar.config(command=self.combat_log.yview)
 
         # Create action buttons.
         # Attack button. Allows the player to select an enemy to attack. Sends the activation and inactivation functions to the select_one_from_enemies function
-
         attack_button = tk.Button(self.window, text="Attack", command=lambda: (self.select_one_from_list("Pick an enemy", self.both_parties_name_lists[1], 900, 400, self.action_button_functions[0]), self.action_buttons_inactivated()))
         attack_button.place(x=800, y=320, width = 100, height = 25)
 
@@ -211,31 +226,47 @@ class CombatScreen(Subject):
         inventory_button = tk.Button(self.window, text="Inventory", command=lambda: self.notify_observers(GUINotification.PLAYER_INVENTORY))
         inventory_button.place(x=800, y=370, width = 100, height = 25)
 
-        self.action_buttons = [attack_button, heal_button, inventory_button]
+        self.action_buttons = {
+            "Attack": attack_button,
+            "Heal": heal_button,
+            "Inventory": inventory_button
+        }
+
+    def update_attack_button(self, attack_button_list):
+        self.action_buttons["Attack"].config(command=lambda: (self.select_one_from_list("Pick an enemy", attack_button_list, 900, 400, self.action_button_functions[0]), self.action_buttons_inactivated()))
+
+    def update_heal_button(self, heal_button_list):
+        self.action_buttons["Heal"].config(command=lambda: (self.select_one_from_list("Pick an ally", heal_button_list, 900, 400, self.action_button_functions[1]), self.action_buttons_inactivated()))
 
     def action_buttons_activated(self):
-        for button in self.action_buttons:
+        for button in self.action_buttons.values():
             button.config(state = tk.NORMAL)
 
     def action_buttons_inactivated(self):
-        for button in self.action_buttons:
+        for button in self.action_buttons.values():
             button.config(state = tk.DISABLED)
 
     def add_text_to_combat_log(self, text: str):
+        self.combat_log.config(state = tk.NORMAL)
         self.combat_log.insert(tk.END, text)
         self.combat_log.see(tk.END)
+        self.combat_log.config(state = tk.DISABLED)
 
     def update_player_table(self, table: str):
+        self.player_table.config(state = tk.NORMAL)
         self.player_table.delete("1.0", tk.END)
         self.player_table.insert(tk.END, table)
         self.player_table.tag_add("green", "1.0", "1.end")
         self.player_table.tag_config("green", foreground="green")
+        self.player_table.config(state = tk.DISABLED)
 
     def update_enemy_table(self, table: str):
+        self.enemy_table.config(state = tk.NORMAL)
         self.enemy_table.delete("1.0", tk.END)
         self.enemy_table.insert(tk.END, table)
         self.enemy_table.tag_add("red", "1.0", "1.end")
         self.enemy_table.tag_config("red", foreground="red")
+        self.enemy_table.config(state = tk.DISABLED)
 
     def select_one_from_list(self, title: str, options: List[str], x: int, y: int, function = None):
         # Create selection frame

@@ -84,17 +84,22 @@ class CombatManager(Subject):
         if len(self.enemy_party.units) == 0:
             print("Enemies Defeated!")
             self.outcome = FightOutcome.PLAYER_VICTORY
+            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_BATTLE_END)
 
-    # DEPRECATED: This is how the enemy's turn is handled
+    # This is how the enemy's turn is handled
     def handle_enemy_turn(self, selected_enemy_unit: unit.Unit):
         self.enemy_turn(selected_enemy_unit)
         if len(self.player_party.units) == 0:
             print("Player Party has been defeated!")
             self.outcome = FightOutcome.ENEMY_VICTORY
+            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_BATTLE_END)
 
     # Give the options available to the player. This is where player decision is made
     def player_turn(self, selected_unit: unit.Unit):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, f"{selected_unit.name}'s turn! \n", selected_unit.name)
+
+        if selected_unit.physical:
+            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_UNIT_CANNOT_HEAL)
 
     # DEPRECATED
     def handle_item_use(self, player_unit: unit.Unit, player_party: unit.Party):
@@ -134,18 +139,20 @@ class CombatManager(Subject):
     def player_attack(self, selected_enemy_unit_name: str):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} attacks {selected_enemy_unit_name}!\n")
         try:
-            selected_unit = self.enemy_party.get_unit(selected_enemy_unit_name)
-            # partial_enemy_table_update_function = functools.partial(self.notify_observers, rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE)
-            self.current_unit.attack(selected_unit, self.partial_log_update_function())
+            selected_target = self.enemy_party.get_unit(selected_enemy_unit_name)
+            is_enemy_dead = self.current_unit.attack(selected_target, self.partial_log_update_function())
+            if is_enemy_dead:
+                self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_UPDATE_ATTACK_BUTTON, self.enemy_party.get_unit_names)
+                try:
+                    self.turn_order_list.remove(self.current_unit)
+                except ValueError:
+                    pass
             self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE, self.get_enemy_table())
         except KeyError:
             print("Invalid Selection")
             return
 
-        if len(self.turn_order_list) == 0:
-            self.get_new_turn_order()
-        else:
-            self.get_next_turn_unit()
+        self.handle_turn_order()
 
     def player_heal(self, selected_target_name: str, is_player: bool):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} heals {selected_target_name}!\n")
@@ -153,7 +160,15 @@ class CombatManager(Subject):
     # Enemy AI. For now, just attacks
     def enemy_turn(self, selected_enemy_unit):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, f"{selected_enemy_unit.name}'s turn!\n")
-        selected_enemy_unit.attack(random.choice(self.player_party.units), self.partial_log_update_function())
+        selected_target = random.choice(self.player_party.units)
+        is_enemy_dead = selected_enemy_unit.attack(selected_target, self.partial_log_update_function())
+        if is_enemy_dead:
+            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_UPDATE_HEAL_BUTTON, self.player_party.get_unit_names)
+            try:
+                self.turn_order_list.remove(selected_target)
+            except ValueError:
+                pass
+
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TABLE_UPDATE, self.get_ally_table())
 
-        self.get_next_turn_unit()
+        self.handle_turn_order()

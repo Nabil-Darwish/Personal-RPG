@@ -80,21 +80,27 @@ class TerraIncognita:
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, self.gui.add_combat_log_text)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TABLE_UPDATE, self.gui.update_player_table)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE, self.gui.update_enemy_table)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_UPDATE_ATTACK_BUTTON, self.gui.update_attack_button)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_UPDATE_HEAL_BUTTON, self.gui.update_heal_button)
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_UNIT_CANNOT_HEAL, self.gui.deactivate_heal_button)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, self.gui.player_turn)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, self.gui.enemy_turn)
+
+        # Adding flag for ending the battle
+        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_BATTLE_END, self.end_combat)
 
         # Starting the battle
         self.combat_manager.start_battle()
 
-    #DISCONNECTED: How battles end
+    # How battles end
     def end_combat(self):
         self.music_manager.stop_current_music_thread()
         if self.combat_manager.outcome == FightOutcome.PLAYER_VICTORY:
             self.music_manager.stop_and_play_music('music/victory.wav')
-            input("Congatulations\n")
+            self.gui.add_combat_log_text("Congatulations\n")
         else:
             self.music_manager.stop_and_play_music('music/game over.wav')
-            input("Sorry! Try again!\n")
+            self.gui.add_combat_log_text("Sorry! Try again!\n")
 
     def start_music(self):
         self.music_manager.start_music_thread("music/cats.wav")
