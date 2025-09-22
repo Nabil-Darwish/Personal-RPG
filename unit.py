@@ -219,14 +219,13 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         else:
             return text_renderer.render_text("light_attacks") + "\n"
 
-    def heal(self, heal_amount):
-        print("Healing!\n")
-        util.pause(500)
+    def heal(self, heal_amount, command_to_update_text_box):
+        util.pause(100)
         if self.hp > (self.max_hp - heal_amount):
             self.hp = self.max_hp
         else:
             self.hp += heal_amount
-        print(f"{self.name} heals for {heal_amount}, back to {self.hp}!")
+        command_to_update_text_box(f"{self.name} heals for {heal_amount}, back to {self.hp}!")
 
 # A party is defined as an object with a list of units, some number of gold, rations and a dictionary of items
 

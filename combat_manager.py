@@ -10,6 +10,8 @@ from rpg_enum import FightOutcome
 
 INVALID_SELECTION = "Invalid Selection!"
 
+HEAL_FACTOR = 0.5
+
 # Handles the use of items
 def item_use(player_unit, item, enemy_unit = None):
     if isinstance(item, HealthPotion):
@@ -96,10 +98,7 @@ class CombatManager(Subject):
 
     # Give the options available to the player. This is where player decision is made
     def player_turn(self, selected_unit: unit.Unit):
-        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, f"{selected_unit.name}'s turn! \n", selected_unit.name)
-
-        if selected_unit.physical:
-            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_UNIT_CANNOT_HEAL)
+        self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, f"{selected_unit.name}'s turn! \n", selected_unit.name, selected_unit.physical)
 
     # DEPRECATED
     def handle_item_use(self, player_unit: unit.Unit, player_party: unit.Party):
@@ -154,8 +153,19 @@ class CombatManager(Subject):
 
         self.handle_turn_order()
 
-    def player_heal(self, selected_target_name: str, is_player: bool):
+    def player_heal(self, selected_target_name: str):
         self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_LOG_TEXT_UPDATE, f"{self.current_unit.name} heals {selected_target_name}!\n")
+
+        try:
+            selected_target = self.player_party.get_unit(selected_target_name)
+            # selected_target.heal(10)
+            selected_target.heal((self.current_unit.get_temp_stat("strength") * HEAL_FACTOR, self.partial_log_update_function()))
+            self.notify_observers(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TABLE_UPDATE, self.get_ally_table())
+        except KeyError:
+            print("Invalid Selection")
+            return
+
+        self.handle_turn_order()
 
     # Enemy AI. For now, just attacks
     def enemy_turn(self, selected_enemy_unit):

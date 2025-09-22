@@ -5,6 +5,7 @@ from time import sleep
 from tkinter import ttk
 from typing import List
 
+from combat_manager import INVALID_SELECTION
 from rpg_enum import GUINotification
 from util import Subject
 
@@ -107,8 +108,8 @@ class GUI(Subject):
         self.combat_window.add_text_to_combat_log(turn_text)
         self.notify_observers(GUINotification.REQUEST_NEXT_UNIT)
 
-    def player_turn(self, turn_text: str, unit_name: str):
-        self.combat_window.action_buttons_activated()
+    def player_turn(self, turn_text: str, unit_name: str, is_physical: bool):
+        self.combat_window.action_buttons_activated(is_physical)
         self.combat_window.active_unit_name = unit_name
         self.add_combat_log_text(turn_text)
 
@@ -131,10 +132,6 @@ class GUI(Subject):
 
     def update_heal_button(self, heal_button_list):
         self.combat_window.update_heal_button(heal_button_list)
-
-    def deactivate_heal_button(self):
-        self.combat_window.action_buttons_inactivated()
-        sleep(0.5)
 
     def change_label_font(self, label, font):
         label.configure(font=(font, 30)) # (font)
@@ -232,15 +229,25 @@ class CombatScreen(Subject):
             "Inventory": inventory_button
         }
 
+        self.unit_physical = True
+        self.select_button = None
+        self.selection_combobox = None
+
     def update_attack_button(self, attack_button_list):
         self.action_buttons["Attack"].config(command=lambda: (self.select_one_from_list("Pick an enemy", attack_button_list, 900, 400, self.action_button_functions[0]), self.action_buttons_inactivated()))
 
     def update_heal_button(self, heal_button_list):
         self.action_buttons["Heal"].config(command=lambda: (self.select_one_from_list("Pick an ally", heal_button_list, 900, 400, self.action_button_functions[1]), self.action_buttons_inactivated()))
 
-    def action_buttons_activated(self):
+    def action_buttons_activated(self, is_physical: bool):
         for button in self.action_buttons.values():
             button.config(state = tk.NORMAL)
+
+        if is_physical:
+            self.action_buttons["Heal"].config(state = tk.DISABLED)
+            self.unit_physical = True
+        else:
+            self.unit_physical = False
 
     def action_buttons_inactivated(self):
         for button in self.action_buttons.values():
@@ -274,17 +281,24 @@ class CombatScreen(Subject):
         selection_frame.place(x=x, y=y, width=300, height=200)
 
         # Create selection combobox
-        selection_combobox = ttk.Combobox(selection_frame, values=options)
-        selection_combobox.set(title)
-        selection_combobox.place(x=100, y=0, width=100, height=25)
+        self.selection_combobox = ttk.Combobox(selection_frame, values=options)
+        self.selection_combobox.set(title)
+        self.selection_combobox.place(x=100, y=0, width=100, height=25)
+
+        self.selection_combobox.bind("<FocusIn>", self.on_combobox_focus_in)
 
         # Create selection button
-        select_button = tk.Button(selection_frame, text="Select", command=lambda: [function(selection_combobox.get()), selection_frame.destroy(), self.action_buttons_activated()])
-        select_button.place(x=50, y=25, width=100, height=30)
+        self.select_button = tk.Button(selection_frame, text="Select", command=lambda: [function(self.selection_combobox.get()), selection_frame.destroy(), self.action_buttons_activated(self.unit_physical)], state=tk.DISABLED)
+        self.select_button.place(x=50, y=25, width=100, height=30)
 
         # Create back button. When clicked, it destroys the frame and re-activates the action buttons
-        back_button = tk.Button(selection_frame, text="Back", command=lambda: [selection_frame.destroy(), self.action_buttons_activated()])
+        back_button = tk.Button(selection_frame, text="Back", command=lambda: [selection_frame.destroy(), self.action_buttons_activated(self.unit_physical)])
         back_button.place(x=150, y=25, width=100, height=30)
+
+    def on_combobox_focus_in(self, event):
+        # Update state of the select button based on the selection of the combobox
+        if self.select_button is not None:
+            self.select_button.config(state = tk.NORMAL if self.selection_combobox.get() not in ["Pick an ally", "Pick an enemy"] else tk.DISABLED)
 
 class WindowManager:
     def __init__(self):

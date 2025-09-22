@@ -82,7 +82,6 @@ class TerraIncognita:
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TABLE_UPDATE, self.gui.update_enemy_table)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_UPDATE_ATTACK_BUTTON, self.gui.update_attack_button)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_UPDATE_HEAL_BUTTON, self.gui.update_heal_button)
-        self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_UNIT_CANNOT_HEAL, self.gui.deactivate_heal_button)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_PLAYER_TURN, self.gui.player_turn)
         self.combat_manager.add_observer(rpg_enum.CombatNotification.COMBAT_GRID_ENEMY_TURN, self.gui.enemy_turn)
 

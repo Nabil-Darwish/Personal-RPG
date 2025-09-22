@@ -30,7 +30,6 @@ class CombatNotification(Enum):
     COMBAT_GRID_BATTLE_END = auto()
     COMBAT_GRID_UPDATE_ATTACK_BUTTON = auto()
     COMBAT_GRID_UPDATE_HEAL_BUTTON = auto()
-    COMBAT_GRID_UNIT_CANNOT_HEAL = auto()
     INITIAL_STATS_SCREEN = auto()
     MAIN_BATTLE_SCREEN = auto()
     INVENTORY_SCREEN = auto()
