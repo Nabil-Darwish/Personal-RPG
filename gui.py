@@ -25,7 +25,7 @@ class GUI(Subject):
         self.starting_widgets()
 
         # Run mainloop
-        self.window_manager.window.mainloop()
+        self.window_manager.main_window.mainloop()
 
     def update_title(self, title):
         self.title = title
@@ -36,11 +36,11 @@ class GUI(Subject):
 
         # Ask for player name
         name_var = tk.StringVar()
-        name_label = tk.Label(self.window_manager.window, text="What's your name?")
-        name_entry = tk.Entry(self.window_manager.window, textvariable=name_var)
+        name_label = tk.Label(self.window_manager.main_window, text="What's your name?")
+        name_entry = tk.Entry(self.window_manager.main_window, textvariable=name_var)
 
         # Add submit button. It raises the flag that player name is submitted and sends the player name to the game
-        name_submit = tk.Button(self.window_manager.window, text="Submit", command=lambda : self.notify_observers(GUINotification.PLAYER_NAME_SUBMITTED, name_var.get()))
+        name_submit = tk.Button(self.window_manager.main_window, text="Submit", command=lambda : self.notify_observers(GUINotification.PLAYER_NAME_SUBMITTED, name_var.get()))
         name_label.pack(padx=10, pady=10)
         name_entry.pack(padx=10, pady=10)
         name_submit.pack(padx=10, pady=10)
@@ -48,30 +48,30 @@ class GUI(Subject):
     def starting_widgets(self):
         self.window_manager.update_window(self.title)
 
-        game_title_label = tk.Label(self.window_manager.window, text=self.title.upper(), font=("Castellar", 30))
+        game_title_label = tk.Label(self.window_manager.main_window, text=self.title.upper(), font=("Castellar", 30))
         game_title_label.pack(padx=10, pady=10)
 
-        start_button = tk.Button(self.window_manager.window, text="Start", height = 5, width = 30, command=self.query_player_name)
+        start_button = tk.Button(self.window_manager.main_window, text="Start", height = 5, width = 30, command=self.query_player_name)
         start_button.pack(padx=10, pady=10)
 
     def preview_fonts(self):
-        test_label = tk.Label(self.window_manager.window, text="TERRA\nINCOGNITA", font=("Courier", 30))
+        test_label = tk.Label(self.window_manager.main_window, text="TERRA\nINCOGNITA", font=("Courier", 30))
         test_label.pack(padx=10, pady=10)
 
         font_choice = tk.StringVar()
 
-        combobox = ttk.Combobox(self.window_manager.window, values=sorted(tkFont.families()), textvariable=font_choice)
+        combobox = ttk.Combobox(self.window_manager.main_window, values=sorted(tkFont.families()), textvariable=font_choice)
         combobox.pack(padx=10, pady=10)
         combobox.current()
 
-        button_accept = tk.Button(self.window_manager.window, text="Accept", command=lambda : self.change_label_font(test_label, font_choice.get()))
+        button_accept = tk.Button(self.window_manager.main_window, text="Accept", command=lambda : self.change_label_font(test_label, font_choice.get()))
         button_accept.pack(padx=10, pady=10)
 
     def initial_stats_screen(self, both_parties):
         self.window_manager.clear_frame()
 
         # Create a player textbox to preview stats
-        player_text = tk.Text(self.window_manager.window)
+        player_text = tk.Text(self.window_manager.main_window)
         # player_text.grid(row=0, column=0)
         player_text.place(x=0, y=10, width = 600, height = 300)
         player_text.insert(tk.END, both_parties[0])
@@ -80,7 +80,7 @@ class GUI(Subject):
         player_text.config(state = tk.DISABLED)
 
         # Create an enemy textbox to preview stats
-        enemy_text = tk.Text(self.window_manager.window)
+        enemy_text = tk.Text(self.window_manager.main_window)
         # enemy_text.grid(row=0, column=2)
         enemy_text.place(x=600, y=10, width = 600, height = 300)
         enemy_text.insert(tk.END, both_parties[1])
@@ -89,7 +89,7 @@ class GUI(Subject):
         enemy_text.config(state = tk.DISABLED)
 
         # Create a button to start the battle. It raises the flag calling for the current unit table
-        turn_1_button = tk.Button(self.window_manager.window, text="Start battle!", command=lambda: self.notify_observers(GUINotification.REQUEST_CURRENT_UNIT_TABLE))
+        turn_1_button = tk.Button(self.window_manager.main_window, text="Start battle!", command=lambda: self.notify_observers(GUINotification.REQUEST_CURRENT_UNIT_TABLE))
         turn_1_button.place(x=550, y=320, width = 100, height = 50)
 
     # This is called when the combat grid needs to be shown. Receives party tables and party lists
@@ -99,7 +99,7 @@ class GUI(Subject):
         partial_attack_function = functools.partial(self.notify_observers, GUINotification.PLAYER_ATTACK)
         partial_heal_function = functools.partial(self.notify_observers, GUINotification.PLAYER_HEAL)
 
-        self.combat_window = CombatScreen(self.window_manager.window, both_parties_tables, both_parties_name_lists, [partial_attack_function, partial_heal_function])
+        self.combat_window = CombatScreen(self.window_manager.main_window, both_parties_tables, both_parties_name_lists, [partial_attack_function, partial_heal_function])
 
         # Send back request to get turn order list
         self.notify_observers(GUINotification.REQUEST_UNIT_TURN_ORDER)
@@ -139,9 +139,8 @@ class GUI(Subject):
     def send_notification(self, notification: GUINotification, *args):
         self.notify_observers(notification, *args)
 
-class CombatScreen(Subject):
+class CombatScreen:
     def __init__(self, window, both_parties_tables, both_parties_name_lists, action_button_function_list = None):
-        super().__init__()
         if action_button_function_list is None:
             self.action_button_functions = []
         else:
@@ -220,7 +219,7 @@ class CombatScreen(Subject):
         heal_button.place(x=800, y=345, width = 100, height = 25)
 
         # Inventory button
-        inventory_button = tk.Button(self.window, text="Inventory", command=lambda: self.notify_observers(GUINotification.PLAYER_INVENTORY))
+        inventory_button = tk.Button(self.window, text="Inventory")
         inventory_button.place(x=800, y=370, width = 100, height = 25)
 
         self.action_buttons = {
@@ -300,19 +299,36 @@ class CombatScreen(Subject):
         if self.select_button is not None:
             self.select_button.config(state = tk.NORMAL if self.selection_combobox.get() not in ["Pick an ally", "Pick an enemy"] else tk.DISABLED)
 
+class InventoryScreen:
+    def __init__(self, window, inventory_list):
+        self.window = window
+        self.inventory_list = inventory_list
+
+
 class WindowManager:
     def __init__(self):
-        self.window = None
+        self.main_window = None
+        self.side_windows = {}
 
     def start_window(self):
-        self.window = tk.Tk()
-        self.window.title("RPG")
-        self.window.geometry("1200x550")
-        self.window.resizable(False, False)
+        self.main_window = tk.Tk()
+        self.main_window.title("RPG")
+        self.main_window.geometry("1200x550")
+        self.main_window.resizable(False, False)
+
+    def start_side_window(self, name: str):
+        self.side_windows[name] = tk.Toplevel(self.main_window)
+        self.side_windows[name].title(name)
+        self.side_windows[name].geometry("400x550")
+        self.side_windows[name].resizable(False, False)
 
     def update_window(self, new_title):
-        self.window.title(new_title)
+        self.main_window.title(new_title)
 
     def clear_frame(self):
-        for widget in self.window.winfo_children():
+        for widget in self.main_window.winfo_children():
+            widget.destroy()
+
+    def clear_side_window(self, name: str):
+        for widget in self.side_windows[name].winfo_children():
             widget.destroy()
