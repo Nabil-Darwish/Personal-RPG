@@ -2,6 +2,7 @@ import random
 import util
 import math
 import text_renderer
+import item
 
 BASE_CHANCE_HIT = 50
 
@@ -16,7 +17,7 @@ class InsufficientRationsError(Exception):
 
 # Unit class. A unit is a character that is the main entity in a combat scenasrio
 class Unit:
-    def __init__(self, name, player, physical, max_hp, strength, defense, resistance, dexterity, speed, luck, hp = None):
+    def __init__(self, name: str, player: bool, physical: bool, max_hp: int, strength: int, defense: int, resistance: int, dexterity: int, speed: int, luck: int, hp: int = None):
         self.name = name
         self.player = player
         self.physical = physical
@@ -131,42 +132,82 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         return str(self.stats[stat]) + " (" + str(self.get_temp_stat(stat)) + ")"
 
     def decrease_status_effect_durations(self):
+        # If there are no status effects, do nothing
         if len(self.status_effects) == 0:
             return
+        # Decrease the duration of the status effects
         for status_effect_name in list(self.status_effects.keys()):
             status_effect = self.status_effects[status_effect_name]
+            # If the duration of the status effect is greater than 1, decrease it by 1
             if status_effect.duration > 1:
                 status_effect.duration -= 1
+            # Else, pop the status effect out of the list as it has expired
             else:
                 self.status_effects.pop(status_effect_name)
                 self.delete_temp_stats(status_effect)
 
-    def attack(self, enemy):
-        print(f"\n{self.name} attacks {enemy.name}!")
+    # Unit attacks an enemy
+    def attack(self, enemy, command_to_update_text_box):
+        # Pause for a bit
         util.pause(500)
+
+        # Calculate hit chance
         hit_chance = BASE_CHANCE_HIT + self.get_temp_stat("dexterity")
-        print(f"Hit chance: {hit_chance}")
+
+        # Print hit chance
+        command_to_update_text_box(f"Hit chance: {hit_chance}\n")
+
+        util.pause(100)
+
+        # Roll a random number between 0 and 100
         random_variable = random.randint(0, 100)
         if random_variable <= hit_chance:
+            # Hit has occured. Roll another random number for critical hit
             random_variable = random.randint(0, 100)
             if self.physical:
+                # Physical attack
                 damage = self.get_temp_stat("strength") - enemy.get_temp_stat("defense")
             else:
+                # Magical attack
                 damage = self.get_temp_stat("strength") - enemy.get_temp_stat("resistance")
+
+            # If the damage is less than 0, set it to 0. Might change it later to have a minimum damage to allow for agility playstyles
             damage = util.not_less_zero(damage)
             if random_variable <= self.get_temp_stat("luck"):                  # Critical Hit
+                util.pause(100)
+                # Critical hit is 2 times damage. Could change it to a variable instead, with certain characters having a higher multiplier
                 damage = damage * 2
-                print("Critical Hit!")
+                command_to_update_text_box("Critical Hit!\n")
+
+            # Enemy HP is subtracted with damage. If it is less than 0, set it to 0
             enemy.hp -= damage
             enemy.hp = util.not_less_zero(enemy.hp)
-            self.render_hit(enemy, damage)
-            util.pause(800)
+
+            util.pause(100)
+
+            # Render the text used to hit
+            hit_line = self.render_hit(enemy, damage)
+            print(hit_line)
+            command_to_update_text_box(hit_line)
+
+            # Pause for a bit
+            util.pause(500)
+
+            # If enemy HP is 0
             if enemy.hp == 0:
-                print(f"{enemy.name} is dead!\n")
+                # Print that the enemy is dead
+                command_to_update_text_box(f"{enemy.name} is dead!\n")
                 util.pause(500)
+                # Notify enemy that it is dead
                 enemy.notify_observers()
+                return True
+            else:
+                # If enemy is not dead, return false
+                return False
         else:
-            print("Miss!\n")
+            util.pause(100)
+            command_to_update_text_box("Miss!\n\n")
+            return False
 
     def render_hit(self, enemy, damage):
         text_renderer.all_placeholders["unit_name"] = self.name
@@ -174,23 +215,22 @@ Status Effects:\n""" + (', '.join(map(str, self.status_effects.values())))
         text_renderer.all_placeholders["damage"] = str(damage)
         text_renderer.all_placeholders["current_enemy_hp"] = enemy.hp
         if damage >= enemy.max_hp * 0.5:
-            text_renderer.render_text("heavy_attacks")
+            return text_renderer.render_text("heavy_attacks") + "\n"
         else:
-            text_renderer.render_text("light_attacks")
+            return text_renderer.render_text("light_attacks") + "\n"
 
-    def heal(self, heal_amount):
-        print("Healing!\n")
-        util.pause(500)
+    def heal(self, heal_amount, command_to_update_text_box):
+        util.pause(100)
         if self.hp > (self.max_hp - heal_amount):
             self.hp = self.max_hp
         else:
             self.hp += heal_amount
-        print(f"{self.name} heals for {heal_amount}, back to {self.hp}!")
+        command_to_update_text_box(f"{self.name} heals for {heal_amount}, back to {self.hp}!")
 
-
+# A party is defined as an object with a list of units, some number of gold, rations and a dictionary of items
 
 class Party:
-   def __init__(self, gold, rations):
+   def __init__(self, gold: int, rations: int):
        self.units = []
        self.gold = gold
        self.rations = rations
@@ -207,8 +247,10 @@ class Party:
         return f"Party(units={units_repr}, gold={self.gold}, rations={self.rations}, inventory={self.inventory})"
 
    def show_units(self):
+       units_text = ""
        for unit in self.units:
-           print(unit)
+           units_text = units_text + str(unit) + "\n"
+       return units_text
 
    def is_player_party(self):
        return self.units[0].player
@@ -232,31 +274,38 @@ class Party:
    def unit_count(self):
        return len(self.units)
 
-   def update(self, unit):
+   @property
+   def get_unit_names(self):
+       return [unit.name for unit in self.units]
+
+   def update(self, unit: Unit):
        self.remove_unit(unit)
 
-   def add_unit(self, unit):
+   def add_unit(self, unit: Unit):
        self.units.append(unit)
        unit.add_observer(self)
 
-   def remove_unit(self, unit):
+   def remove_unit(self, unit: Unit):
        if unit not in self.units:
            raise UnitNotFoundError("Unit not found!")
        unit.remove_observer(self)
        self.units.remove(unit)
 
-   def add_gold(self, added_gold):
+   def get_unit(self, unit_name: str):
+       return next((unit for unit in self.units if unit.name == unit_name), None)
+
+   def add_gold(self, added_gold: int):
        self.gold += added_gold
 
-   def remove_gold(self, removed_gold):
+   def remove_gold(self, removed_gold: int):
        if (self.gold - removed_gold) < 0:
            raise InsufficientGoldError("Not enough gold!")
        self.gold -= removed_gold
 
-   def add_rations(self, added_rations):
+   def add_rations(self, added_rations: int):
        self.rations += added_rations
 
-   def remove_rations(self, removed_rations):
+   def remove_rations(self, removed_rations: int):
        if (self.rations - removed_rations) < 0:
            raise InsufficientRationsError("Not enough rations!")
        self.rations -= removed_rations
@@ -283,13 +332,13 @@ class Party:
 
        return item_name
 
-   def add_inventory(self, item):
-       if item.name in self.inventory:
-           self.inventory[item.name].stack_size += item.stack_size
+   def add_inventory(self, added_item: item.Item):
+       if added_item.name in self.inventory:
+           self.inventory[added_item.name].stack_size += added_item.stack_size
        else:
-           self.inventory[item.name] = item
+           self.inventory[added_item.name] = added_item
 
-   def remove_inventory(self, item_name):
+   def remove_inventory(self, item_name: str):
        if self.inventory[item_name].stack_size > 1:
            self.inventory[item_name].stack_size -= 1
        else:
